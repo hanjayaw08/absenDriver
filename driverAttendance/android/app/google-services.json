@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "76631996266",
+    "project_id": "absensidriver-5c77a",
+    "storage_bucket": "absensidriver-5c77a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76631996266:android:85d16fe3f6c6ca44f31713",
+        "android_client_info": {
+          "package_name": "com.example.driverattendance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEJIH45XPAbtUPlrcxtoxAL5C4hrYsvso"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
