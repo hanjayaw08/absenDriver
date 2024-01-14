@@ -499,13 +499,19 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     jenis
     tanggal
     user_id
+    driver {
+      displayName
+    }
   }
-  rencana_rute(where: { tanggal: { _gte: "2023-12-01", _lte: "2024-01-31" } }, order_by: {tangal: asc}) {
+  rencana_rute(where: { tanggal: { _gte: "2023-12-01", _lte: "2024-01-31" } }, order_by: {tanggal: asc}) {
     keterangan
     jam_mulai
     jam_selesai
     tanggal
     user_id
+    driver {
+      displayName
+    }
   }
 }
 
@@ -970,7 +976,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
               rowData[3] += '${absenItem['jenis']} : ${absenItem['jam']}\n';
             } else if (absenItem['jenis'] == 'PULANG') {
               rowData[3] ??= ''; // Inisialisasi jika null
-              rowData[] += '${absenItem['jenis']} : ${absenItem['jam']}\n';
+              rowData[3] += '${absenItem['jenis']} : ${absenItem['jam']}\n';
             }
           });
         }
@@ -995,6 +1001,97 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
 
     OpenFile.open(csvFile.path);
   }
+
+  // Future<void> generateAndDownloadCSV() async {
+  //   // Fetch data using the existing fetchDataDetailPDF() function
+  //
+  //   // Combine 'rencana_rute' and 'absen' data into a single list
+  //   List<Map<String, dynamic>> combinedData = [];
+  //   combinedData.addAll(detailRencanaRutePDF);
+  //   combinedData.addAll(detailAbsenDataPDF);
+  //
+  //   // Group data by 'tanggal'
+  //   Map<String, List<Map<String, dynamic>>> groupedData = {};
+  //   combinedData.forEach((item) {
+  //     String tanggal = item['tanggal'];
+  //     if (!groupedData.containsKey(tanggal)) {
+  //       groupedData[tanggal] = [];
+  //     }
+  //     groupedData[tanggal]?.add(item); // Use the null-aware operator to safely add the item to the list
+  //   });
+  //
+  //   // Prepare CSV data
+  //   List<List<dynamic>> csvData = [
+  //     ['tanggal', 'nama', 'action']
+  //   ];
+  //
+  //   groupedData.forEach((tanggal, items) {
+  //     items.forEach((item) {
+  //       String? nama = item['driver']?['displayName'];
+  //       String action = (item.containsKey('jam'))
+  //           ? item['jenis'] ?? 'unknown' // Use 'jenis' for 'absen'
+  //           : item['keterangan'] ?? 'unknown'; // Use 'keterangan' for 'rencana_rute'
+  //
+  //       csvData.add([tanggal, nama, action]);
+  //     });
+  //   });
+  //
+  //   // Generate CSV file
+  //   Directory? appDocumentsDirectory = await getExternalStorageDirectory();
+  //   String appDocumentsPath = appDocumentsDirectory?.path ?? '';
+  //   final csvFile = File('$appDocumentsPath/example.csv');
+  //   csvFile.writeAsString(const ListToCsvConverter().convert(csvData));
+  //
+  //   // Open the CSV file for download
+  //   OpenFile.open(csvFile.path);
+  // }
+
+  Future<void> generateAndDownloadCSV() async {
+    // Fetch data using the existing fetchDataDetailPDF() function
+
+    // Combine 'rencana_rute' and 'absen' data into a single list
+    List<Map<String, dynamic>> combinedData = [];
+    combinedData.addAll(detailRencanaRutePDF);
+    combinedData.addAll(detailAbsenDataPDF);
+
+    // Group data by 'tanggal'
+    Map<String, List<Map<String, dynamic>>> groupedData = {};
+    combinedData.forEach((item) {
+      String tanggal = item['tanggal'];
+      if (!groupedData.containsKey(tanggal)) {
+        groupedData[tanggal] = [];
+      }
+      groupedData[tanggal]?.add(item); // Use the null-aware operator to safely add the item to the list
+    });
+
+    // Prepare CSV data
+    List<List<dynamic>> csvData = [
+      ['tanggal', 'nama', 'action']
+    ];
+
+    groupedData.forEach((tanggal, items) {
+      items.forEach((item) {
+        String? nama = item['driver']?['displayName'];
+        String action = (item.containsKey('jam'))
+            ? item['jenis'] ?? 'null' // Use 'jenis' for 'absen'
+            : item['keterangan'] ?? 'null'; // Use 'keterangan' for 'rencana_rute'
+
+        csvData.add([tanggal, nama, action]);
+      });
+    });
+
+    // Generate CSV file
+    Directory? appDocumentsDirectory = await getExternalStorageDirectory();
+    String appDocumentsPath = appDocumentsDirectory?.path ?? '';
+    final csvFile = File('$appDocumentsPath/example.csv');
+    csvFile.writeAsString(const ListToCsvConverter().convert(csvData));
+
+    // Open the CSV file for download
+    OpenFile.open(csvFile.path);
+    combinedData.clear();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -1086,8 +1183,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
               ),
               TextButton(onPressed: () async {
                 await fetchDataDetailPDF();
-
-                generateCSV(groupedData);
+                generateAndDownloadCSV();
               }, child: Text('coba'))
             ],
           ),
