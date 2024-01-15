@@ -1,8 +1,9 @@
 import 'dart:ffi';
-
+import 'dart:io';
 import 'package:driverattendance/component/buttonBackGroun.dart';
 import 'package:driverattendance/component/textButton.dart';
 import 'package:driverattendance/component/textField.dart';
+import 'package:driverattendance/linkUtama_server.dart';
 import 'package:driverattendance/main.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -17,6 +18,9 @@ import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:maps_launcher/maps_launcher.dart';
+import 'package:camera/camera.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class homePage extends StatefulWidget {
 
@@ -98,6 +102,7 @@ class _homePageState extends State<homePage> {
     var now = DateTime.now();
     formattedDate = DateFormat('yyyy-MM-d').format(now);
     currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
+    print('ini token ${widget.tokenDriver}');
     updateTime();
     fetchData();
   }
@@ -1069,7 +1074,9 @@ class _homePageState extends State<homePage> {
                       IconButton(
                         icon: Icon(Icons.close),
                         onPressed: () {
-                          Navigator.pop(context);
+                          // Navigator.pop(context);
+                          _takePictureAndUpload();
+                          // print(widget.tokenDriver);
                         },
                       ),
                     ],
@@ -1089,7 +1096,9 @@ class _homePageState extends State<homePage> {
                         for(var item in detailBbsenData)
                           Column(
                             children: [
-                              Container(
+                              InkWell(
+                                onTap: (){MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));},
+                                child:  Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.all(Radius.circular(20.0)),
                                   color: Color.fromRGBO(218, 218, 218, 1),
@@ -1140,6 +1149,27 @@ class _homePageState extends State<homePage> {
                                                   ],
                                                 )
                                             ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text(item['latitude'] ?? '',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold
+                                                ),
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Icon(Icons.arrow_right),
+                                                  Text(item['longitude'] ?? '',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
+                                                  )
+                                                ],
+                                              )
+                                            ],
                                           )
                                         ],
                                       ),
@@ -1159,7 +1189,7 @@ class _homePageState extends State<homePage> {
                                     ],
                                   ),
                                 ),
-                              ),
+                              ),),
                               SizedBox(height: 15,),
                             ],
                           ),
@@ -1430,6 +1460,8 @@ class _homePageState extends State<homePage> {
     jam
     jenis
     tanggal
+    longitude
+    latitude
   }
   rencana_rute(where: {user_id: {_eq: "$idDriver"}, _and: {tanggal: {_eq: "$tanggal"}}}) {
     jam_mulai
@@ -1530,6 +1562,38 @@ query MyQuery {
 
   List<int> numberList = [0, 1, 0, 0, 0, 0];
   List<int> numberList1 = [1,1];
+
+  Future<void> _takePictureAndUpload() async {
+    try {
+      final XFile? file = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+      if (file != null) {
+        // Upload gambar ke penyimpanan Nhost
+        await uploadImage(file.path);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> uploadImage(String imagePath) async {
+    try {
+      // Membaca isi file ke dalam byte array
+      List<int> bytes = await File(imagePath).readAsBytes();
+
+      // Upload gambar ke penyimpanan Nhost
+      final fileMetadata = await nhost.storage.uploadBytes(
+        fileName: 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        fileContents: bytes,
+        mimeType: 'image/jpeg',
+        // Tambahkan header Authorization ke dalam request
+      );
+
+      print('File berhasil diunggah dengan ID: ${fileMetadata.id}');
+    } catch (e) {
+      print('Gagal mengunggah file. Error: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

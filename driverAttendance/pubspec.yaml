@@ -61,6 +61,9 @@ dependencies:
   excel: ^4.0.2
   maps_launcher: ^2.2.0
   csv: ^5.1.1
+  nhost_storage_dart: ^1.0.1
+  camera: ^0.10.5+9
+  image_picker: ^1.0.7
 
 dev_dependencies:
   flutter_test:

@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:maps_launcher/maps_launcher.dart';
 
 class homeOwnerPage extends StatefulWidget {
   final Function(int) navigateToJanjiTamu;
@@ -437,74 +438,100 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                           for(var item in detailBbsenData)
                             Column(
                               children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                    color: Color.fromRGBO(218, 218, 218, 1),
-                                    border: Border.all(
-                                      color: Colors.black, // Warna border yang diinginkan
-                                      width: 1.0, // Ketebalan border
+                                InkWell(
+                                  onTap: (){
+                                    MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                      color: Color.fromRGBO(218, 218, 218, 1),
+                                      border: Border.all(
+                                        color: Colors.black, // Warna border yang diinginkan
+                                        width: 1.0, // Ketebalan border
+                                      ),
                                     ),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        if (item['jenis'] == "DATANG")
-                                          Icon(
-                                            Icons.login,
-                                            color: Colors.green,
-                                          )
-                                        else
-                                          Icon(
-                                            Icons.logout,
-                                            color: Colors.red,
-                                          ),
-
-                                        SizedBox(width: 10,),
-
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text('Absensi ${item['jenis']}',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                              ),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          if (item['jenis'] == "DATANG")
+                                            Icon(
+                                              Icons.login,
+                                              color: Colors.green,
+                                            )
+                                          else
+                                            Icon(
+                                              Icons.logout,
+                                              color: Colors.red,
                                             ),
-                                            Row(
-                                              children: [
-                                                Text(item['jam'],
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
-                                                  ),
+
+                                          SizedBox(width: 10,),
+
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text('Absensi ${item['jenis']}',
+                                                style: TextStyle(
+                                                  fontSize: 16,
                                                 ),
-                                                if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text(item['jam'],
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
+                                                  ),
+                                                  if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
+                                                    Row(
+                                                      children: [
+                                                        Icon(Icons.arrow_right),
+                                                        Text('Kampus A')
+                                                      ],
+                                                    )
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text(item['latitude'] ?? '',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
+                                                  ),
                                                   Row(
                                                     children: [
                                                       Icon(Icons.arrow_right),
-                                                      Text('Kampus A')
+                                                      Text(item['longitude'] ?? '',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
+                                                      )
                                                     ],
                                                   )
-                                              ],
-                                            )
-                                          ],
-                                        ),
-
-                                        Spacer(),
-
-                                        if (cekApprove == true)
-                                          Icon(
-                                            Icons.check,
-                                            color: Colors.green,
-                                          )
-                                        else
-                                          Icon(
-                                            Icons.close,
-                                            color: Colors.red,
+                                                ],
+                                              )
+                                            ],
                                           ),
-                                      ],
+
+                                          Spacer(),
+
+                                          if (cekApprove == true)
+                                            Icon(
+                                              Icons.check,
+                                              color: Colors.green,
+                                            )
+                                          else
+                                            Icon(
+                                              Icons.close,
+                                              color: Colors.red,
+                                            ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -515,67 +542,93 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                           for(var item in detailRencanaRute)
                             Column(
                               children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                    color: Color.fromRGBO(218, 218, 218, 1),
-                                    border: Border.all(
-                                      color: Colors.black, // Warna border yang diinginkan
-                                      width: 1.0, // Ketebalan border
+                                InkWell(
+                                  onTap: (){
+                                    MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));
+                                  },
+                                  child:  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                      color: Color.fromRGBO(218, 218, 218, 1),
+                                      border: Border.all(
+                                        color: Colors.black, // Warna border yang diinginkan
+                                        width: 1.0, // Ketebalan border
+                                      ),
                                     ),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.place,
-                                          color: Colors.green,
-                                        ),
-
-                                        SizedBox(width: 10,),
-
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text('Rencana Rute',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(item['jam_mulai'],
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
-                                                  ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['keterangan'])
-                                                  ],
-                                                )
-                                              ],
-                                            )
-                                          ],
-                                        ),
-
-                                        Spacer(),
-
-                                        if (cekApprove == true)
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
                                           Icon(
-                                            Icons.check,
+                                            Icons.place,
                                             color: Colors.green,
-                                          )
-                                        else
-                                          Icon(
-                                            Icons.close,
-                                            color: Colors.red,
                                           ),
-                                      ],
+
+                                          SizedBox(width: 10,),
+
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text('Rencana Rute',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text(item['jam_mulai'],
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      Icon(Icons.arrow_right),
+                                                      Text(item['keterangan'])
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text(item['latitude'] ?? '',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      Icon(Icons.arrow_right),
+                                                      Text(item['longitude'] ?? '',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
+                                                      )
+                                                    ],
+                                                  )
+                                                ],
+                                              )
+                                            ],
+                                          ),
+
+                                          Spacer(),
+
+                                          if (cekApprove == true)
+                                            Icon(
+                                              Icons.check,
+                                              color: Colors.green,
+                                            )
+                                          else
+                                            Icon(
+                                              Icons.close,
+                                              color: Colors.red,
+                                            ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -857,6 +910,8 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
     jenis
     tanggal
     user_id
+    longitude
+    latitude
   }
   rencana_rute(where: {user_id: {_eq: "$idDriver"}, _and: {tanggal: {_eq: "$tanggal"}}}) {
     rute_id :id
@@ -865,6 +920,8 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
     keterangan
     tanggal
     user_id
+    longitude
+    latitude
   }
   
   approval(where: {tanggal: {_eq: "$tanggal"}, _and: {driver_id: {_eq: "$idDriver"}}}) {

@@ -13,6 +13,7 @@ import 'package:custom_date_range_picker/custom_date_range_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:csv/csv.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 
 class riwayatHrdPage extends StatefulWidget {
   String tokenDriver;
@@ -107,74 +108,100 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                         for(var item in detailBbsenData)
                           Column(
                             children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                  color: Color.fromRGBO(218, 218, 218, 1),
-                                  border: Border.all(
-                                    color: Colors.black, // Warna border yang diinginkan
-                                    width: 1.0, // Ketebalan border
+                              InkWell(
+                                onTap: () {
+                                  MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                    color: Color.fromRGBO(218, 218, 218, 1),
+                                    border: Border.all(
+                                      color: Colors.black, // Warna border yang diinginkan
+                                      width: 1.0, // Ketebalan border
+                                    ),
                                   ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      if (item['jenis'] == "DATANG")
-                                        Icon(
-                                          Icons.login,
-                                          color: Colors.green,
-                                        )
-                                      else
-                                        Icon(
-                                          Icons.logout,
-                                          color: Colors.red,
-                                        ),
-
-                                      SizedBox(width: 10,),
-
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Absensi ${item['jenis']}',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                            ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        if (item['jenis'] == "DATANG")
+                                          Icon(
+                                            Icons.login,
+                                            color: Colors.green,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.logout,
+                                            color: Colors.red,
                                           ),
-                                          Row(
-                                            children: [
-                                              Text(item['jam'],
-                                                style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold
-                                                ),
+
+                                        SizedBox(width: 10,),
+
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('Absensi ${item['jenis']}',
+                                              style: TextStyle(
+                                                fontSize: 16,
                                               ),
-                                              if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(item['jam'],
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                                if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
+                                                  Row(
+                                                    children: [
+                                                      Icon(Icons.arrow_right),
+                                                      Text('Kampus A')
+                                                    ],
+                                                  ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(item['latitude'] ?? '',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
                                                 Row(
                                                   children: [
                                                     Icon(Icons.arrow_right),
-                                                    Text('Kampus A')
+                                                    Text(item['longitude'] ?? '',
+                                                      style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.bold
+                                                      ),
+                                                    )
                                                   ],
-                                                ),
-                                            ],
-                                          )
-                                        ],
-                                      ),
-
-                                      Spacer(),
-
-                                      if (cekApprove == true)
-                                        Icon(
-                                          Icons.check,
-                                          color: Colors.green,
-                                        )
-                                      else
-                                        Icon(
-                                          Icons.close,
-                                          color: Colors.red,
+                                                )
+                                              ],
+                                            )
+                                          ],
                                         ),
-                                    ],
+
+                                        Spacer(),
+
+                                        if (cekApprove == true)
+                                          Icon(
+                                            Icons.check,
+                                            color: Colors.green,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.close,
+                                            color: Colors.red,
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -184,67 +211,93 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                         for(var item in detailRencanaRute)
                           Column(
                             children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                  color: Color.fromRGBO(218, 218, 218, 1),
-                                  border: Border.all(
-                                    color: Colors.black, // Warna border yang diinginkan
-                                    width: 1.0, // Ketebalan border
+                              InkWell(
+                                onTap: (){
+                                  MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                    color: Color.fromRGBO(218, 218, 218, 1),
+                                    border: Border.all(
+                                      color: Colors.black, // Warna border yang diinginkan
+                                      width: 1.0, // Ketebalan border
+                                    ),
                                   ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.place,
-                                        color: Colors.green,
-                                      ),
-
-                                      SizedBox(width: 10,),
-
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Rencana Rute',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Text(item['jam_mulai'],
-                                                style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold
-                                                ),
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Icon(Icons.arrow_right),
-                                                  Text(item['keterangan'])
-                                                ],
-                                              )
-                                            ],
-                                          )
-                                        ],
-                                      ),
-
-                                      Spacer(),
-
-                                      if (cekApprove == true)
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
                                         Icon(
-                                          Icons.check,
+                                          Icons.place,
                                           color: Colors.green,
-                                        )
-                                      else
-                                        Icon(
-                                          Icons.close,
-                                          color: Colors.red,
                                         ),
-                                    ],
+
+                                        SizedBox(width: 10,),
+
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('Rencana Rute',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(item['jam_mulai'],
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.arrow_right),
+                                                    Text(item['keterangan'])
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(item['latitude'] ?? '',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.arrow_right),
+                                                    Text(item['longitude'] ?? '',
+                                                      style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.bold
+                                                      ),
+                                                    )
+                                                  ],
+                                                )
+                                              ],
+                                            )
+                                          ],
+                                        ),
+
+                                        Spacer(),
+
+                                        if (cekApprove == true)
+                                          Icon(
+                                            Icons.check,
+                                            color: Colors.green,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.close,
+                                            color: Colors.red,
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -332,7 +385,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
       QueryOptions(
         document: gql('''
         query MyQuery {
-  status_absen(where: {tanggal: {_lt: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}, _and: {tanggal: {_gt: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32)))}"}}}, order_by: {tanggal: desc}) {
+  status_absen(where: {tanggal: {_lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}, _and: {tanggal: {_gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32)))}"}}}, order_by: {tanggal: desc}) {
     driver {
       displayName
       id
@@ -404,6 +457,8 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     jam
     jenis
     tanggal
+    longitude
+    latitude
   }
   rencana_rute(where: {user_id: {_eq: "$idDriver"}, _and: {tanggal: {_eq: "$tanggal"}}}) {
     jam_mulai
@@ -411,6 +466,8 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     keterangan
     tanggal
     user_id
+    longitude
+    latitude
   }
 }
 
@@ -951,56 +1008,56 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
   }
   Map<String, List<Map<String, dynamic>>> groupedData = {};
 
-  void generateCSV(Map<String, List<Map<String, dynamic>>> groupedData) async {
-    // Header CSV
-    List<List<dynamic>> csvData = [
-      ['Nama', 'Tanggal', 'User ID', 'Absen Masuk', 'Absen Pulang', 'Rencana Rute']
-    ];
-
-    // Data CSV
-    groupedData.forEach((tanggal, items) {
-      items.forEach((item) {
-        String nama = item['nama'] ?? '';
-        String tanggal = item['tanggal'] ?? '';
-        String userId = item['user_id'] ?? '';
-
-        // Menyiapkan baris untuk nilai absen dan rencana_rute pada tanggal tertentu
-        List<dynamic> rowData = [nama, tanggal, userId, null, null, null];
-
-        // Memeriksa dan menambahkan nilai absen pada baris tersebut
-        // Memeriksa dan menambahkan nilai absen pada baris tersebut
-        if (item['absen'] != null) {
-          item['absen']!.forEach((absenItem) {
-            if (absenItem['jenis'] == 'DATANG') {
-              rowData[3] ??= ''; // Inisialisasi jika null
-              rowData[3] += '${absenItem['jenis']} : ${absenItem['jam']}\n';
-            } else if (absenItem['jenis'] == 'PULANG') {
-              rowData[3] ??= ''; // Inisialisasi jika null
-              rowData[3] += '${absenItem['jenis']} : ${absenItem['jam']}\n';
-            }
-          });
-        }
-
-        // Memeriksa dan menambahkan nilai rencana_rute pada baris tersebut
-        if (item['rencana_rute'] != null) {
-          item['rencana_rute']!.forEach((rencanaRuteItem) {
-            rowData[5] = '${rencanaRuteItem['keterangan']} : ${rencanaRuteItem['jam_mulai']} - ${rencanaRuteItem['jam_selesai']}';
-          });
-        }
-
-        // Menambahkan baris ke csvData
-        csvData.add(rowData);
-      });
-    });
-
-    // Tulis ke file CSV
-    Directory? appDocumentsDirectory = await getExternalStorageDirectory();
-    String appDocumentsPath = appDocumentsDirectory?.path ?? '';
-    final csvFile = File('$appDocumentsPath/example.csv');
-    csvFile.writeAsString(const ListToCsvConverter().convert(csvData));
-
-    OpenFile.open(csvFile.path);
-  }
+  // void generateCSV(Map<String, List<Map<String, dynamic>>> groupedData) async {
+  //   // Header CSV
+  //   List<List<dynamic>> csvData = [
+  //     ['Nama', 'Tanggal', 'User ID', 'Absen Masuk', 'Absen Pulang', 'Rencana Rute']
+  //   ];
+  //
+  //   // Data CSV
+  //   groupedData.forEach((tanggal, items) {
+  //     items.forEach((item) {
+  //       String nama = item['nama'] ?? '';
+  //       String tanggal = item['tanggal'] ?? '';
+  //       String userId = item['user_id'] ?? '';
+  //
+  //       // Menyiapkan baris untuk nilai absen dan rencana_rute pada tanggal tertentu
+  //       List<dynamic> rowData = [nama, tanggal, userId, null, null, null];
+  //
+  //       // Memeriksa dan menambahkan nilai absen pada baris tersebut
+  //       // Memeriksa dan menambahkan nilai absen pada baris tersebut
+  //       if (item['absen'] != null) {
+  //         item['absen']!.forEach((absenItem) {
+  //           if (absenItem['jenis'] == 'DATANG') {
+  //             rowData[3] ??= ''; // Inisialisasi jika null
+  //             rowData[3] += '${absenItem['jenis']} : ${absenItem['jam']}\n';
+  //           } else if (absenItem['jenis'] == 'PULANG') {
+  //             rowData[3] ??= ''; // Inisialisasi jika null
+  //             rowData[3] += '${absenItem['jenis']} : ${absenItem['jam']}\n';
+  //           }
+  //         });
+  //       }
+  //
+  //       // Memeriksa dan menambahkan nilai rencana_rute pada baris tersebut
+  //       if (item['rencana_rute'] != null) {
+  //         item['rencana_rute']!.forEach((rencanaRuteItem) {
+  //           rowData[5] = '${rencanaRuteItem['keterangan']} : ${rencanaRuteItem['jam_mulai']} - ${rencanaRuteItem['jam_selesai']}';
+  //         });
+  //       }
+  //
+  //       // Menambahkan baris ke csvData
+  //       csvData.add(rowData);
+  //     });
+  //   });
+  //
+  //   // Tulis ke file CSV
+  //   Directory? appDocumentsDirectory = await getExternalStorageDirectory();
+  //   String appDocumentsPath = appDocumentsDirectory?.path ?? '';
+  //   final csvFile = File('$appDocumentsPath/example.csv');
+  //   csvFile.writeAsString(const ListToCsvConverter().convert(csvData));
+  //
+  //   OpenFile.open(csvFile.path);
+  // }
 
   // Future<void> generateAndDownloadCSV() async {
   //   // Fetch data using the existing fetchDataDetailPDF() function
@@ -1090,8 +1147,6 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     OpenFile.open(csvFile.path);
     combinedData.clear();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
