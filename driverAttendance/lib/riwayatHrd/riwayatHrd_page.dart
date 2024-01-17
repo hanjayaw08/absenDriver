@@ -342,6 +342,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     updateTime();
     fetchData();
     fetchDataWA();
+    fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32))), DateFormat('yyyy-MM-dd').format(DateTime.now()));
   }
 
   void updateTime() {
@@ -530,7 +531,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
   List<Map<String, dynamic>> detailStatusAbsen = [];
   List<Map<String, dynamic>> combinedData = [];
 
-  Future<void> fetchDataDetailPDF() async {
+  Future<void> fetchDataDetailPDF(String tanggalAwal, String tanggalAkhir) async {
     final GraphQLClient client = GraphQLClient(
       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
         defaultHeaders: {
@@ -544,14 +545,14 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
       QueryOptions(
         document: gql('''
          query MyQuery {
-  get_status_absen(args: {start_date: "2023-12-01", end_date: "2024-01-31"}, order_by: {tanggal: asc}) {
+  get_status_absen(args: {start_date: "$tanggalAwal", end_date: "$tanggalAkhir"}, order_by: {tanggal: asc}) {
     tanggal
     user_id
     driver {
       displayName
     }
   }
-  absen(where: { tanggal: { _gte: "2023-12-01", _lte: "2024-01-31" } }, order_by: {tanggal: asc}) {
+  absen(where: { tanggal: { _gte: "$tanggalAwal", _lte: "$tanggalAkhir" } }, order_by: {tanggal: asc}) {
     jam
     jenis
     tanggal
@@ -560,7 +561,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
       displayName
     }
   }
-  rencana_rute(where: { tanggal: { _gte: "2023-12-01", _lte: "2024-01-31" } }, order_by: {tanggal: asc}) {
+  rencana_rute(where: { tanggal: { _gte: "$tanggalAwal", _lte: "$tanggalAkhir" } }, order_by: {tanggal: asc}) {
     keterangan
     jam_mulai
     jam_selesai
@@ -1148,6 +1149,37 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     combinedData.clear();
   }
 
+  void _showPopupTombolDownload(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Download : '),
+          actions: [
+            ElevatedButton(
+              onPressed: () async {
+                final pdfPath = await generatePDF(detailStatusAbsen, detailAbsenDataPDF, detailRencanaRutePDF);
+                print('PDF generated successfully.');
+                openPDF(pdfPath);
+                _saveAndViewPdf(pdfPath);
+                combinedData = [];
+                groupedData.clear();
+              },
+              child: Text('PDF'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                generateAndDownloadCSV();
+              },
+              child: Text('Excel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -1167,7 +1199,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
               Spacer(),
               InkWell(
                 onTap: () async {
-                  await  fetchDataDetailPDF();
+                  // await  fetchDataDetailPDF();
                   // for (var statusAbsen in detailStatusAbsen) {
                   //   String tanggal = statusAbsen['tanggal'];
                   //   String userId = statusAbsen['user_id'];
@@ -1197,12 +1229,13 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                   //   };
                   //   combinedData.add(combinedItem);
                   // }
-                  final pdfPath = await generatePDF(detailStatusAbsen, detailAbsenDataPDF, detailRencanaRutePDF);
-                  print('PDF generated successfully.');
-                  openPDF(pdfPath);
-                  _saveAndViewPdf(pdfPath);
-                  combinedData = [];
-                  groupedData.clear();
+                  // final pdfPath = await generatePDF(detailStatusAbsen, detailAbsenDataPDF, detailRencanaRutePDF);
+                  // print('PDF generated successfully.');
+                  // openPDF(pdfPath);
+                  // _saveAndViewPdf(pdfPath);
+                  // combinedData = [];
+                  // groupedData.clear();
+                  _showPopupTombolDownload(context);
                 },
                 child: Image.asset('assets/img/Downlaod.png',
                   scale: 2.9,
@@ -1226,9 +1259,11 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                         selectedDate1 = start;
                       });
                       fetchCondition(DateFormat('yyyy-MM-dd').format(selectedDate1 ?? DateTime.now()), DateFormat('yyyy-MM-dd').format(selectedDate2 ?? DateTime.now()));
+                      fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(selectedDate1 ?? DateTime.now()), DateFormat('yyyy-MM-dd').format(selectedDate2 ?? DateTime.now()));
                     },
                     onCancelClick: () {
                         fetchData();
+                        fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32))), DateFormat('yyyy-MM-dd').format(DateTime.now()));
                     },
                   );
                 },
@@ -1236,10 +1271,6 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                   size: 30,
                 ),
               ),
-              TextButton(onPressed: () async {
-                await fetchDataDetailPDF();
-                generateAndDownloadCSV();
-              }, child: Text('coba'))
             ],
           ),
           automaticallyImplyLeading: false,
@@ -1286,6 +1317,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                               selectedDate1 = null;
                                               selectedDate2 = null;
                                               fetchData();
+                                              fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32))), DateFormat('yyyy-MM-dd').format(DateTime.now()));
                                             });
                                           },
                                           child: Icon(Icons.close),

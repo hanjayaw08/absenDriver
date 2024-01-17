@@ -10,13 +10,13 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:maps_launcher/maps_launcher.dart';
 
-class homeOwnerPage extends StatefulWidget {
+class homeGAPage extends StatefulWidget {
   final Function(int) navigateToJanjiTamu;
   String tokenDriver;
   String idDriver;
   String nameDriver;
 
-  homeOwnerPage({
+  homeGAPage({
     required this.idDriver,
     required this.tokenDriver,
     required this.nameDriver,
@@ -25,10 +25,10 @@ class homeOwnerPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _homeOwnerPageState createState() => _homeOwnerPageState();
+  _homeGAPageState createState() => _homeGAPageState();
 }
 
-class _homeOwnerPageState extends State<homeOwnerPage> {
+class _homeGAPageState extends State<homeGAPage> {
   // ini untuk waktu menit dan detik untuk absensi
   late String formattedDate;
   late String currentTime;
@@ -41,7 +41,6 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
   final TextEditingController alasanText = TextEditingController();
   final Map<String, List<Map<String, dynamic>>> groupedData = {};
   List<Map<String, dynamic>> absenData = [];
-  List<Map<String, dynamic>> jadwalDriver = [];
   List<Map<String, dynamic>> detailBbsenData = [];
   List<Map<String, dynamic>> detailRencanaRute = [];
   List<Map<String, dynamic>> detailApprove = [];
@@ -58,21 +57,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
     formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id').format(now);
     currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
     updateTime();
-    // fetchData();
-    executeSequentialTasks();
-  }
-
-  Future<void> executeSequentialTasks() async {
-    await fetchDataJadwal();
-    print('ini absen $absenData');
-
-    if (absenData.isEmpty) {
-      await fetchData();
-      print('ini absen2 $absenData');
-    }
-
-    // Lanjutkan dengan tugas berikutnya setelah semua proses selesai
-    // ...
+    fetchData();
   }
 
   void updateTime() {
@@ -96,14 +81,12 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
         return StatefulBuilder(
             builder: (context, setState) {
               return SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
                 child: Container(
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom,
                   ),
                   child: ListView(
                     shrinkWrap: true,
-                    physics: AlwaysScrollableScrollPhysics(),
                     children: <Widget>[
                       Container(
                         padding: EdgeInsets.all(16.0),
@@ -902,59 +885,9 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
       print('Error Cuy: ${result.exception.toString()}');
     } else {
       absenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
-    }
-  }
-  Future<void> fetchDataJadwal() async {
-    final GraphQLClient client = GraphQLClient(
-      link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
-        defaultHeaders: {
-          'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
-        },
-      ),
-      cache: GraphQLCache(),
-    );
-
-    final QueryResult result = await client.query(
-      QueryOptions(
-        document: gql('''
-        query MyQuery {
-  jadwal_driver {
-    driver_id
-    id
-    tanggal
-  }
-  status_absen(where: {tanggal: {_eq: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}}, order_by: {tanggal: desc}) {
-    driver {
-      displayName
-      id
-    }
-    has_approve
-    has_absen
-    tanggal
-  }
-}
-      '''),
-      ),
-    );
-
-    if (result.hasException) {
-      print('Error Cuy: ${result.exception.toString()}');
-    } else {
-      jadwalDriver = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
-
-      // Memperoleh driver_id dari jadwalDriver
-      List<dynamic> driverIds = jadwalDriver.map((entry) => entry['driver_id']).toList();
-
-      // Mengambil status absen berdasarkan driver_id
-      absenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? [])
-          .where((entry) => driverIds.contains(entry['driver']['id']))
-          .toList();
-
       print(absenData);
-
-      for (var item in absenData) {
+      for (var item in absenData)
         print(item['jenis']);
-      }
     }
   }
   Future<void> fetchDataDetail(String tanggal, String idDriver) async {
@@ -1026,7 +959,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
 
   Future<void> refreshData() async {
     // Tambahkan logika pembaruan data di sini
-    await executeSequentialTasks();
+    await fetchData();
   }
 
   @override
@@ -1102,7 +1035,6 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                       color: Colors.white
                   ),
                   child: RefreshIndicator(child: SingleChildScrollView(
-                    physics: AlwaysScrollableScrollPhysics(),
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
                       child: Column(
@@ -1120,7 +1052,6 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                               CustomTextButton(
                                 onPressed: () {
                                   widget.navigateToJanjiTamu(1);
-                                  // fetchDataJadwal();
                                 },
                                 text: 'Lihat Semua',
                               )
@@ -1131,7 +1062,9 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                             InkWell(
                               onTap: () async {
                                 await fetchDataDetail(item['tanggal'], item['driver']['id']);
+
                                 showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve']);
+
                               },
                               child: Column(
                                 children: [

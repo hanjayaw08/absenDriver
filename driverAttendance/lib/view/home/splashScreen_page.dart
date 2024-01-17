@@ -6,6 +6,7 @@ import 'package:driverattendance/linkUtama_server.dart';
 import 'package:driverattendance/navBar_page.dart';
 import 'package:driverattendance/navbarHrd_page.dart';
 import 'package:driverattendance/navbarOwner_page.dart';
+import 'package:driverattendance/view/GAview/navbarGA_page.dart';
 import 'package:driverattendance/view/home_owner/homeOwner_Page.dart';
 import 'package:driverattendance/view/profil/profil_page.dart';
 import 'package:driverattendance/view/riwayat/riwayat_page.dart';
@@ -134,9 +135,12 @@ class _splashScreenPageState extends State<splashScreenPage> {
           password: passwordText.text,
           emailDriver: currentUser.email ?? '',
         ));
+      }else if (currentUser?.defaultRole == 'ga') {
+        Get.to(navBarGAPage(idDriver: currentUser.id, tokenDriver: tokenUser.toString(), namaDriver: currentUser!.displayName, password: passwordText.text, emailDriver: currentUser.email ?? '',));
       }
       print(tokenUser);
       print("ini isinya ${currentUser!.id}");
+      print(currentUser.defaultRole);
     } catch (error) {
       print('Gagal login: $error');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -211,6 +215,8 @@ class _splashScreenPageState extends State<splashScreenPage> {
           password: password.toString(),
           emailDriver: email.toString(),
         ));
+      } else if (userRole == 'ga') {
+        Get.to(navBarGAPage(idDriver: userId.toString(), tokenDriver: tokenId.toString(), namaDriver: userName.toString(), password: password.toString(), emailDriver: email.toString(),));
       }
     }
   }

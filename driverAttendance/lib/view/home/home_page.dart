@@ -1074,8 +1074,7 @@ class _homePageState extends State<homePage> {
                       IconButton(
                         icon: Icon(Icons.close),
                         onPressed: () {
-                          // Navigator.pop(context);
-                          _takePictureAndUpload();
+                          Navigator.pop(context);
                           // print(widget.tokenDriver);
                         },
                       ),
@@ -1170,7 +1169,12 @@ class _homePageState extends State<homePage> {
                                                 ],
                                               )
                                             ],
-                                          )
+                                          ),
+                                          if(item['jenis'] == "SAKIT")
+                                           TextButton(
+                                              onPressed: (){
+                                                _takePictureAndUpload(item['id'].toString());
+                                              }, child: Text('Upload Image'))
                                         ],
                                       ),
 
@@ -1364,6 +1368,41 @@ class _homePageState extends State<homePage> {
     }
   }
 
+  void runMutationFunctionImage({
+    required String id,
+    required String fileId,
+  }) async {
+    final HttpLink httpLink = HttpLink(
+      'http://45.64.3.54:40380/absendriver-api/v1/graphql',
+      defaultHeaders: {
+        'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
+      },
+    );
+
+    final GraphQLClient client = GraphQLClient(
+      link: httpLink,
+      cache: GraphQLCache(),
+    );
+
+    final MutationOptions options = MutationOptions(
+      document: gql('''
+      mutation MyMutation {
+  update_absen(where: {id: {_eq: "$id"}}, _set: {files: "$fileId"}) {
+    affected_rows
+  } 
+}
+    '''),
+    );
+
+    final QueryResult result = await client.mutate(options);
+
+    if (result.hasException) {
+      print('Mutation error: ${result.exception.toString()}');
+    } else {
+      print('Mutation successful: ${result.data}');
+    }
+  }
+
   void runMutationFunctionRute({
     required String jam_mulai,
     required String jam_selesai,
@@ -1462,6 +1501,7 @@ class _homePageState extends State<homePage> {
     tanggal
     longitude
     latitude
+    id
   }
   rencana_rute(where: {user_id: {_eq: "$idDriver"}, _and: {tanggal: {_eq: "$tanggal"}}}) {
     jam_mulai
@@ -1563,20 +1603,20 @@ query MyQuery {
   List<int> numberList = [0, 1, 0, 0, 0, 0];
   List<int> numberList1 = [1,1];
 
-  Future<void> _takePictureAndUpload() async {
+  Future<void> _takePictureAndUpload(String id) async {
     try {
       final XFile? file = await ImagePicker().pickImage(source: ImageSource.gallery);
 
       if (file != null) {
         // Upload gambar ke penyimpanan Nhost
-        await uploadImage(file.path);
+        await uploadImage(file.path, id);
       }
     } catch (e) {
       print(e);
     }
   }
 
-  Future<void> uploadImage(String imagePath) async {
+  Future<void> uploadImage(String imagePath, String id) async {
     try {
       // Membaca isi file ke dalam byte array
       List<int> bytes = await File(imagePath).readAsBytes();
@@ -1590,6 +1630,7 @@ query MyQuery {
       );
 
       print('File berhasil diunggah dengan ID: ${fileMetadata.id}');
+      runMutationFunctionImage(id: id, fileId: fileMetadata.id);
     } catch (e) {
       print('Gagal mengunggah file. Error: $e');
     }
