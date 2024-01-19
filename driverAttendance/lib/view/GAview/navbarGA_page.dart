@@ -1,5 +1,5 @@
 import 'package:driverattendance/view/GAview/homeGA_Page.dart';
-import 'package:driverattendance/view/GAview/riwayarGA_page.dart';
+import 'package:driverattendance/view/GAview/riwayatGA_page.dart';
 import 'package:driverattendance/view/home/home_page.dart';
 import 'package:driverattendance/view/home_owner/homeOwner_Page.dart';
 import 'package:driverattendance/view/profil/profil_page.dart';

@@ -57,7 +57,7 @@ class _homeGAPageState extends State<homeGAPage> {
     formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id').format(now);
     currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
     updateTime();
-    fetchData();
+    fetchData1();
   }
 
   void updateTime() {
@@ -325,7 +325,7 @@ class _homeGAPageState extends State<homeGAPage> {
                                           ruterID.add(item['rute_id']);
                                         }
                                         runMutationFunctionApprove(absenId: absenID, keterangan: alasanText.text, driverId: idDriver, approve: false, ruteID: ruterID, tanggal: tanggal);
-                                        fetchData();
+                                        fetchData1();
                                         showDialog(
                                           context: context,
                                           builder: (BuildContext context) {
@@ -388,7 +388,7 @@ class _homeGAPageState extends State<homeGAPage> {
     }
   }
 
-  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal, String driverId, bool cekApprove) {
+  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal, String driverId, bool cekApprove, String namaOwner) {
     final screenSize = MediaQuery.of(context).size;
     showModalBottomSheet(
       context: context,
@@ -424,7 +424,7 @@ class _homeGAPageState extends State<homeGAPage> {
                   ),
                   SizedBox(height: 15,),
                   Text(
-                    tanggal,
+                    DateFormat('EEEE, d MMM y', 'id').format(DateTime.parse(tanggal)),
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
@@ -434,6 +434,65 @@ class _homeGAPageState extends State<homeGAPage> {
                   if (cekKosong == true)
                     Column(
                       children: [
+                        if (namaOwner != '')
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                              color: Color.fromRGBO(218, 218, 218, 1),
+                              border: Border.all(
+                                color: Colors.black, // Warna border yang diinginkan
+                                width: 1.0, // Ketebalan border
+                              ),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text('Ditugaskan ke',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.arrow_right_sharp),
+                                          Text(namaOwner ?? '',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+
+                                  Spacer(),
+
+                                  if (cekApprove == true)
+                                    Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                    )
+                                  else
+                                    Icon(
+                                      Icons.close,
+                                      color: Colors.red,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        SizedBox(height: 15,),
                         if (detailBbsenData.isNotEmpty)
                           for(var item in detailBbsenData)
                             Column(
@@ -714,7 +773,7 @@ class _homeGAPageState extends State<homeGAPage> {
                                   ruterID.add(item['rute_id']);
                                 }
                                 runMutationFunctionApprove(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal);
-                                fetchData();
+                                fetchData1();
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) {
@@ -853,7 +912,44 @@ class _homeGAPageState extends State<homeGAPage> {
     }
   }
 
-  Future<void> fetchData() async {
+//   Future<void> fetchData() async {
+//     final GraphQLClient client = GraphQLClient(
+//       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
+//         defaultHeaders: {
+//           'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
+//         },
+//       ),
+//       cache: GraphQLCache(),
+//     );
+//
+//     final QueryResult result = await client.query(
+//       QueryOptions(
+//         document: gql('''
+//         query MyQuery {
+//   status_absen(where: {tanggal: {_lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}, _and: {tanggal: {_gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 7)))}"}}}, order_by: {tanggal: desc}) {
+//     driver {
+//       displayName
+//       id
+//     }
+//     has_approve
+//     has_absen
+//     tanggal
+//   }
+// }
+//       '''),
+//       ),
+//     );
+//
+//     if (result.hasException) {
+//       print('Error Cuy: ${result.exception.toString()}');
+//     } else {
+//       absenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+//       print(absenData);
+//       for (var item in absenData)
+//         print(item['jenis']);
+//     }
+//   }
+  Future<void> fetchData1() async {
     final GraphQLClient client = GraphQLClient(
       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
         defaultHeaders: {
@@ -867,27 +963,76 @@ class _homeGAPageState extends State<homeGAPage> {
       QueryOptions(
         document: gql('''
         query MyQuery {
-  status_absen(where: {tanggal: {_lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}, _and: {tanggal: {_gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 7)))}"}}}, order_by: {tanggal: desc}) {
-    driver {
-      displayName
-      id
-    }
-    has_approve
-    has_absen
-    tanggal
-  }
-}
+          status_absen(
+            where: {
+              tanggal: {
+                _lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
+                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 7)))}"
+              }
+            },
+            order_by: {tanggal: desc}
+          ) {
+            driver {
+              id
+              displayName
+            }
+            has_absen
+            tanggal
+            has_approve
+          }
+          jadwal_driver(
+            where: {
+              tanggal: {
+                _lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
+                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32)))}"
+              }
+            }
+          ) {
+            driver_id
+            id
+            tanggal
+            owner_id
+            owner {
+              displayName
+            }
+          }
+        }
       '''),
       ),
     );
 
     if (result.hasException) {
       print('Error Cuy: ${result.exception.toString()}');
+      print(widget.tokenDriver);
     } else {
-      absenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> statusAbsenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> jadwalData = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
+
+      // Membuat Map untuk mengakses ownerData berdasarkan driver_id dan tanggal
+      Map<String, Map<String, dynamic>> ownerDataMap = {};
+      for (var jadwal in jadwalData) {
+        String driverId = jadwal['driver_id'];
+        String tanggal = jadwal['tanggal'];
+        Map<String, dynamic> owner = jadwal['owner'];
+        ownerDataMap['$driverId-$tanggal'] = owner;
+      }
+
+      // Menggabungkan hasil dari status_absen dan jadwal_driver
+      for (var absen in statusAbsenData) {
+        String driverId = absen['driver']['id'];
+        String tanggal = absen['tanggal'];
+        Map<String, dynamic>? owner = ownerDataMap['$driverId-$tanggal'];
+
+        if (owner != null) {
+          // Menambahkan data owner ke dalam status_absen
+          absen['ownerData'] = owner;
+        }
+      }
+
+      // Hasil akhir diassign ke absenData
+      absenData = statusAbsenData;
+
       print(absenData);
-      for (var item in absenData)
-        print(item['jenis']);
     }
   }
   Future<void> fetchDataDetail(String tanggal, String idDriver) async {
@@ -959,7 +1104,7 @@ class _homeGAPageState extends State<homeGAPage> {
 
   Future<void> refreshData() async {
     // Tambahkan logika pembaruan data di sini
-    await fetchData();
+    await fetchData1();
   }
 
   @override
@@ -1063,7 +1208,7 @@ class _homeGAPageState extends State<homeGAPage> {
                               onTap: () async {
                                 await fetchDataDetail(item['tanggal'], item['driver']['id']);
 
-                                showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve']);
+                                showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '');
 
                               },
                               child: Column(
@@ -1114,11 +1259,17 @@ class _homeGAPageState extends State<homeGAPage> {
                                                     ),
                                                   ),
                                                   Text(DateFormat('EEEE, d MMM y', 'id').format(DateTime.parse(item['tanggal'])),
-                                                      style: TextStyle(
-                                                          fontSize: 13,
-                                                          fontWeight: FontWeight.w300
-                                                      ),
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                    ),
                                                   ),
+                                                  if (item['ownerData'] != null)
+                                                    Text(
+                                                      item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '',
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
                                                   if (item['has_absen'] == false)
                                                     Text('Tidak ada aktifitas terekam',
                                                       style: TextStyle(

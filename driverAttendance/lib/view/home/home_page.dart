@@ -104,7 +104,7 @@ class _homePageState extends State<homePage> {
     currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
     print('ini token ${widget.tokenDriver}');
     updateTime();
-    fetchData();
+    fetchData1();
   }
 
   void updateTime() {
@@ -181,7 +181,7 @@ class _homePageState extends State<homePage> {
                                   ),
                                 );
                               } else {
-                                return Container(); // Widget kosong jika tidak perlu menampilkan pesan.
+                                return Container();
                               }
                             }),
                             SizedBox(height: 5,),
@@ -235,8 +235,8 @@ class _homePageState extends State<homePage> {
                                           borderRadius: BorderRadius.all(Radius.circular(10.0)),
                                           color: Colors.white,
                                           border: Border.all(
-                                            color: Colors.black, // Warna border yang diinginkan
-                                            width: 1.0, // Ketebalan border
+                                            color: Colors.black,
+                                            width: 1.0,
                                           ),
                                         ),
                                         child: Padding(
@@ -623,17 +623,20 @@ class _homePageState extends State<homePage> {
                                     jenis: "DATANG",
                                     keterangan: ""
                                 );
-                                setState(() {
-                                  fetchData();
-                                });
                               }
-                              if (absensi.isEmpty && absen == true)
+                              if (absensi.isEmpty && absen == true) {
+                                setState(() {
+                                  // Lakukan sesuatu setelah setState selesai
+                                  fetchData1();
+                                  // Update UI atau lakukan aksi lainnya jika diperlukan
+                                });
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) {
                                     return RoundPopup();
                                   },
                                 );
+                              }
                               if (absensi.isEmpty && absen == true)
                                 Future.delayed(Duration(seconds: 1), () {
                                   Navigator.pop(context);
@@ -735,7 +738,7 @@ class _homePageState extends State<homePage> {
                                   keterangan: alasanText.text
                               );
                               setState(() {
-                                fetchData();
+                                fetchData1();
                               });
                             }
                             if (absensi.isEmpty)
@@ -845,7 +848,7 @@ class _homePageState extends State<homePage> {
                                     keterangan: ""
                                 );
                                 setState(() {
-                                  fetchData();
+                                  fetchData1();
                                 });
                               }
                               if (absensi.isEmpty && absen == true)
@@ -955,7 +958,7 @@ class _homePageState extends State<homePage> {
                                   keterangan: alasanText.text
                               );
                               setState(() {
-                                fetchData();
+                                fetchData1();
                               });
                             }
                             if (absensi.isEmpty)
@@ -1044,7 +1047,7 @@ class _homePageState extends State<homePage> {
     }
   }
 
-  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal) {
+  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal, String namaOwner) {
     final screenSize = MediaQuery.of(context).size;
     showModalBottomSheet(
       context: context,
@@ -1092,6 +1095,65 @@ class _homePageState extends State<homePage> {
                   if (cekKosong == true)
                     Column(
                       children: [
+                        if (namaOwner != '')
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                              color: Color.fromRGBO(218, 218, 218, 1),
+                              border: Border.all(
+                                color: Colors.black, // Warna border yang diinginkan
+                                width: 1.0, // Ketebalan border
+                              ),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text('Ditugaskan ke',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.arrow_right_sharp),
+                                          Text(namaOwner ?? '',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+
+                                  Spacer(),
+
+                                  if (detailApprove[0]['has_approve'] == true)
+                                    Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                    )
+                                  else
+                                    Icon(
+                                      Icons.close,
+                                      color: Colors.red,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        SizedBox(height: 15,),
                         for(var item in detailBbsenData)
                           Column(
                             children: [
@@ -1447,7 +1509,7 @@ class _homePageState extends State<homePage> {
     }
   }
 
-  Future<void> fetchData() async {
+  Future<void> fetchData1() async {
     final GraphQLClient client = GraphQLClient(
       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
         defaultHeaders: {
@@ -1461,24 +1523,73 @@ class _homePageState extends State<homePage> {
       QueryOptions(
         document: gql('''
         query MyQuery {
-  status_absen(order_by: {tanggal: desc}, limit: 7) {
-    has_absen
-    tanggal
-    has_approve
-  }
-}
+          status_absen(
+            where: {
+              tanggal: {
+                _lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
+                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 7)))}"
+              }
+            },
+            order_by: {tanggal: desc}
+          ) {
+            driver {
+              displayName
+            }
+            user_id
+            has_absen
+            tanggal
+            has_approve
+          }
+          jadwal_driver{
+            driver_id 
+            id
+            tanggal
+            owner {
+              displayName
+            }
+            owner_id
+          }
+        }
       '''),
       ),
     );
 
     if (result.hasException) {
-      print('Error: ${result.exception.toString()}');
+      print('Error Cuy: ${result.exception.toString()}');
+      print(widget.tokenDriver);
     } else {
-      absenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> statusAbsenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> jadwalData = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
 
-      // Hasilnya adalah groupedData yang berisi data yang sudah dikelompokkan berdasarkan tanggal
-     for (var item in absenData)
-       print(item['has_absen']);
+      // Membuat Map untuk mengakses ownerData berdasarkan driver_id dan tanggal
+      Map<String, Map<String, dynamic>> ownerDataMap = {};
+      for (var jadwal in jadwalData) {
+        String driverId = jadwal['driver_id'];
+        String tanggal = jadwal['tanggal'];
+        Map<String, dynamic> owner = jadwal['owner'] ?? {};
+        ownerDataMap['$driverId-$tanggal'] = owner;
+      }
+
+      // Menggabungkan hasil dari status_absen dan jadwal_driver
+      for (var absen in statusAbsenData) {
+        String driverId = absen['user_id'];
+        String tanggal = absen['tanggal'];
+        Map<String, dynamic>? owner = ownerDataMap['$driverId-$tanggal'];
+
+        if (owner != null) {
+          // Menambahkan data owner ke dalam status_absen
+          absen['ownerData'] = owner;
+        }
+      }
+
+      // Hasil akhir diassign ke absenData
+      absenData = statusAbsenData;
+      for (var jadwal in jadwalData) {
+        print('Owner Data: ${jadwal['owner']}');
+        // rest of the loop
+      }
+
+      print(absenData[2]['ownerData']['displayName']);
     }
   }
   Future<void> fetchDataDetail(String tanggal, String idDriver) async {
@@ -1565,7 +1676,7 @@ query MyQuery {
 
   Future<void> refreshData() async {
     // Tambahkan logika pembaruan data di sini
-    await fetchData();
+    await fetchData1();
   }
 
   Future<void> _getLocation() async {
@@ -1773,7 +1884,7 @@ query MyQuery {
                                           height: 50,
                                           child: CustomButton(
                                             onPressed: () async {
-                                              await fetchData();
+                                              await fetchData1();
                                               await fetchAbsensi(DateFormat('yyyy-MM-dd').format(DateTime.now()), 'SAKIT');
                                               print(absensi);
                                               showKonfirmasiMenuAbsensiModal(context);
@@ -1835,7 +1946,7 @@ query MyQuery {
                                     InkWell(
                                       onTap: () async {
                                         await fetchDataDetail(item['tanggal'], widget.idDriver);
-                                        showDetailAbsensiModal(context, item['has_absen'], item['tanggal']);
+                                        showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '');
                                       },
                                       child: Column(
                                         children: [
@@ -1882,6 +1993,13 @@ query MyQuery {
                                                             fontWeight: FontWeight.bold
                                                         ),
                                                       ),
+                                                      if (item['ownerData'] != null)
+                                                        Text(
+                                                          item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '',
+                                                          style: TextStyle(
+                                                            fontSize: 13,
+                                                          ),
+                                                        ),
                                                       if (item['has_absen'] == false)
                                                         Text('Tidak ada aktifitas terekam',
                                                           style: TextStyle(

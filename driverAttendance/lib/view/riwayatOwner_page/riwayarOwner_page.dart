@@ -107,7 +107,7 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
 
   late String formattedDate;
   late String currentTime;
-  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal, String driverId, bool cekStatus) {
+  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal, String driverId, bool cekStatus, String namaOwner) {
     final screenSize = MediaQuery.of(context).size;
     showModalBottomSheet(
       context: context,
@@ -156,6 +156,65 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                       if (cekKosong == true)
                         Column(
                           children: [
+                            if (namaOwner != '')
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                  color: Color.fromRGBO(218, 218, 218, 1),
+                                  border: Border.all(
+                                    color: Colors.black, // Warna border yang diinginkan
+                                    width: 1.0, // Ketebalan border
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text('Ditugaskan ke',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.arrow_right_sharp),
+                                              Text(namaOwner ?? '',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+
+                                      Spacer(),
+
+                                      if (cekStatus == true)
+                                        Icon(
+                                          Icons.check,
+                                          color: Colors.green,
+                                        )
+                                      else
+                                        Icon(
+                                          Icons.close,
+                                          color: Colors.red,
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            SizedBox(height: 15,),
                             for(var item in detailBbsenData)
                               Column(
                                 children: [
@@ -458,14 +517,14 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                     ruterID.add(item['rute_id']);
                                   }
                                   runMutationFunctionRute(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal);
-                                  fetchData();
+                                  fetchData1();
                                   ruterID = [];
                                   absenID = [];
                                   setState(() {
                                     isLoading = false;
                                   });
                                   setState(() {
-                                    fetchData();
+                                    fetchData1();
                                   });
                                   Get.back();
                                 },
@@ -616,7 +675,7 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                             setState(() {
                                               isLoading = false;
                                             });
-                                            fetchData();
+                                            fetchData1();
                                             Get.back();
                                             Get.back();
                                             print('object');
@@ -660,8 +719,8 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
     var now = DateTime.now();
     formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id').format(now);
     updateTime();
-    fetchData();
-    fetchDataWA();
+    fetchData1();
+    fetchDataWA2();
   }
 
   void updateTime() {
@@ -671,7 +730,44 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
     });
   }
 
-  Future<void> fetchData() async {
+//   Future<void> fetchData() async {
+//     final GraphQLClient client = GraphQLClient(
+//       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
+//         defaultHeaders: {
+//           'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
+//         },
+//       ),
+//       cache: GraphQLCache(),
+//     );
+//
+//     final QueryResult result = await client.query(
+//       QueryOptions(
+//         document: gql('''
+//         query MyQuery {
+//   status_absen(where: {tanggal: {_lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}, _and: {tanggal: {_gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 30)))}"}}}, order_by: {tanggal: desc}) {
+//     driver {
+//       displayName
+//       id
+//     }
+//     has_approve
+//     has_absen
+//     tanggal
+//
+//   }
+// }
+//       '''),
+//       ),
+//     );
+//
+//     if (result.hasException) {
+//       print('Error Cuy: ${result.exception.toString()}');
+//       print(widget.tokenDriver);
+//     } else {
+//       absenData.value = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+//       selectedItems = List.generate(absenData.length, (index) => false);
+//     }
+//   }
+  Future<void> fetchData1() async {
     final GraphQLClient client = GraphQLClient(
       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
         defaultHeaders: {
@@ -685,17 +781,33 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
       QueryOptions(
         document: gql('''
         query MyQuery {
-  status_absen(where: {tanggal: {_lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}, _and: {tanggal: {_gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 30)))}"}}}, order_by: {tanggal: desc}) {
-    driver {
-      displayName
-      id
-    }
-    has_approve
-    has_absen
-    tanggal
-    
-  }
-}
+          status_absen(
+            where: {
+              tanggal: {
+                _lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
+                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 31)))}"
+              }
+            },
+            order_by: {tanggal: desc}
+          ) {
+            driver {
+              id
+              displayName
+            }
+            has_absen
+            tanggal
+            has_approve
+          }
+          jadwal_driver{
+            driver_id 
+            id
+            tanggal
+            owner {
+              id
+              displayName
+            }
+          }
+        }
       '''),
       ),
     );
@@ -704,11 +816,74 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
       print('Error Cuy: ${result.exception.toString()}');
       print(widget.tokenDriver);
     } else {
-      absenData.value = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
-      selectedItems = List.generate(absenData.length, (index) => false);
+      List<Map<String, dynamic>> statusAbsenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> jadwalData = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
+
+      // Membuat Map untuk mengakses ownerData berdasarkan driver_id dan tanggal
+      Map<String, Map<String, dynamic>> ownerDataMap = {};
+      for (var jadwal in jadwalData) {
+        String driverId = jadwal['driver_id'];
+        String tanggal = jadwal['tanggal'];
+        Map<String, dynamic> owner = jadwal['owner'] ?? {};
+        ownerDataMap['$driverId-$tanggal'] = owner;
+      }
+
+      // Menggabungkan hasil dari status_absen dan jadwal_driver
+      for (var absen in statusAbsenData) {
+        String driverId = absen['driver']['id'];
+        String tanggal = absen['tanggal'];
+        Map<String, dynamic>? owner = ownerDataMap['$driverId-$tanggal'];
+
+        if (owner != null) {
+          // Menambahkan data owner ke dalam status_absen
+          absen['ownerData'] = owner;
+        }
+      }
+
+      // Hasil akhir diassign ke absenData
+      absenData.value = statusAbsenData;
+      for (var jadwal in jadwalData) {
+        print('Owner Data: ${jadwal['owner']}');
+        // rest of the loop
+      }
+
+      print(absenData[2]['ownerData']['id']);
     }
   }
-  Future<void> fetchDataWA() async {
+//   Future<void> fetchDataWA() async {
+//     final GraphQLClient client = GraphQLClient(
+//       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
+//         defaultHeaders: {
+//           'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
+//         },
+//       ),
+//       cache: GraphQLCache(),
+//     );
+//
+//     final QueryResult result = await client.query(
+//       QueryOptions(
+//         document: gql('''
+//           query MyQuery {
+//   users(where: {defaultRole: {_eq: "driver"}}) {
+//     defaultRole
+//     displayName
+//     email
+//     id
+//   }
+// }
+//       '''),
+//       ),
+//     );
+//
+//     if (result.hasException) {
+//       print('Error Cuy: ${result.exception.toString()}');
+//       print(widget.tokenDriver);
+//     } else {
+//       waData.value = List<Map<String, dynamic>>.from(result.data?['users'] ?? []);
+//       print('ini wa $waData');
+//     }
+//   }
+  Future<void> fetchDataWA2() async {
     final GraphQLClient client = GraphQLClient(
       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
         defaultHeaders: {
@@ -721,23 +896,73 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
     final QueryResult result = await client.query(
       QueryOptions(
         document: gql('''
-          query MyQuery {
-  users {
-    displayName
-    email
-    id
-  }
-}
+        query MyQuery {
+          users(where: {defaultRole: {_eq: "driver"}}) {
+            defaultRole
+            displayName
+            email
+            id
+          }
+          jadwal_driver(where: {tanggal: {_eq: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}}) {
+            driver_id 
+            id
+            tanggal
+            owner {
+              id
+              displayName
+            }
+          }
+        }
       '''),
       ),
     );
+
+    print('Raw Query Result:');
+    print(result.data);
 
     if (result.hasException) {
       print('Error Cuy: ${result.exception.toString()}');
       print(widget.tokenDriver);
     } else {
-      waData.value = List<Map<String, dynamic>>.from(result.data?['users'] ?? []);
-      print('ini wa $waData');
+      List<Map<String, dynamic>> usersData =
+      List<Map<String, dynamic>>.from(result.data?['users'] ?? []);
+
+      List<Map<String, dynamic>> jadwalData =
+      List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
+
+      // Menggunakan Map untuk menyimpan data driver berdasarkan ID
+      Map<String, Map<String, dynamic>> driversMap = {};
+
+      // Memasukkan data driver dari users ke dalam Map
+      for (Map<String, dynamic> user in usersData) {
+        String driverId = user['id'];
+        driversMap[driverId] = {
+          'displayName': user['displayName'],
+          'defaultRole': user['defaultRole'],
+          'idDriver' : user['id']
+        };
+      }
+
+      // Memasukkan data driver dari jadwal_driver ke dalam Map
+      for (Map<String, dynamic> jadwal in jadwalData) {
+        String driverId = jadwal['driver_id'];
+
+        // Memastikan bahwa driversMap[driverId] tidak null sebelum mengakses elemennya
+        if (driversMap[driverId] != null) {
+          // Jika ID driver sudah ada di Map, tambahkan informasi baru
+          driversMap[driverId]!['jadwalData'] = {
+            'id': jadwal['id'],
+            'tanggal': jadwal['tanggal'],
+            'nama' : jadwal['owner']['displayName'],
+            // tambahkan informasi lain sesuai kebutuhan
+          };
+        }
+      }
+
+      // Hasil akhir diassign ke waData
+      waData.value = driversMap.values.toList();
+
+      print("ini sinya ${waData[0]['idDriver']}");
     }
   }
   Future<void> fetchDataDetail(String tanggal, String idDriver) async {
@@ -815,28 +1040,74 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
     final QueryResult result = await client.query(
       QueryOptions(
         document: gql('''
-       query MyQuery {
-  status_absen(where: {tanggal: {_gte: "$tanggalAwal"}, _and: {tanggal: {_lte: "$tanggalAkhir"}}}, order_by: {tanggal: desc})  {
-   driver {
-      displayName
-      id
-    }
-    has_absen
-    tanggal
-  }
-}
+        query MyQuery {
+          status_absen(
+            where: {
+              tanggal: {
+                _lte: "${tanggalAkhir}",
+                _gte: "${tanggalAwal}"
+              }
+            },
+            order_by: {tanggal: desc}
+          ) {
+            driver {
+              id
+              displayName
+            }
+            has_absen
+            tanggal
+            has_approve
+          }
+          jadwal_driver{
+            driver_id 
+            id
+            tanggal
+            owner {
+              id
+              displayName
+            }
+          }
+        }
       '''),
       ),
     );
 
     if (result.hasException) {
-      print('Error: ${result.exception.toString()}');
+      print('Error Cuy: ${result.exception.toString()}');
+      print(widget.tokenDriver);
     } else {
-      absenData.value = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> statusAbsenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> jadwalData = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
 
-      // Hasilnya adalah groupedData yang berisi data yang sudah dikelompokkan berdasarkan tanggal
-      for (var item in absenData)
-        print(item['has_absen']);
+      // Membuat Map untuk mengakses ownerData berdasarkan driver_id dan tanggal
+      Map<String, Map<String, dynamic>> ownerDataMap = {};
+      for (var jadwal in jadwalData) {
+        String driverId = jadwal['driver_id'];
+        String tanggal = jadwal['tanggal'];
+        Map<String, dynamic> owner = jadwal['owner'] ?? {};
+        ownerDataMap['$driverId-$tanggal'] = owner;
+      }
+
+      // Menggabungkan hasil dari status_absen dan jadwal_driver
+      for (var absen in statusAbsenData) {
+        String driverId = absen['driver']['id'];
+        String tanggal = absen['tanggal'];
+        Map<String, dynamic>? owner = ownerDataMap['$driverId-$tanggal'];
+
+        if (owner != null) {
+          // Menambahkan data owner ke dalam status_absen
+          absen['ownerData'] = owner;
+        }
+      }
+
+      // Hasil akhir diassign ke absenData
+      absenData.value = statusAbsenData;
+      for (var jadwal in jadwalData) {
+        print('Owner Data: ${jadwal['owner']}');
+        // rest of the loop
+      }
+
+      print(absenData[2]['ownerData']['id']);
     }
   }
 
@@ -953,11 +1224,11 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
 
   Future<void> refreshData() async {
     // Tambahkan logika pembaruan data di sini
-    await fetchData();
+    await fetchData1();
   }
   Future<void> refreshDataWA() async {
     // Tambahkan logika pembaruan data di sini
-    await fetchDataWA();
+    await fetchDataWA2();
   }
 
   @override
@@ -1064,7 +1335,7 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                           setState(() {
                                             selectedDate1 = null;
                                             selectedDate2 = null;
-                                            fetchData();
+                                            fetchData1();
                                           });
                                         },
                                         child: Icon(Icons.close),
@@ -1088,8 +1359,8 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                               return  InkWell(
                                 onTap: () async {
                                   await fetchDataDetail(item['tanggal'], item['driver']['id']);
-                                  fetchData();
-                                  showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve']);
+                                  fetchData1();
+                                  showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '');
                                 },
                                 onLongPress: () {
                                   setState(() {
@@ -1155,6 +1426,13 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                                         fontSize: 13,
                                                       ),
                                                     ),
+                                                    if (item['ownerData'] != null)
+                                                      Text(
+                                                        item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '',
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
                                                     Text(item['has_absen'] == false ? 'Tidak ada aktifitas terekam' : item['has_approve'] == true? 'Laporan di Approve' : 'Laporan Belum DIapprove',
                                                       style: TextStyle(
                                                           fontSize: 13,
@@ -1198,7 +1476,6 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                          Padding(
                              padding: EdgeInsets.all(16),
                              child:  Container(
-                               height: 50,
                                child: Row(
                                  children: [
                                    ClipOval(
@@ -1219,11 +1496,31 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                              fontWeight: FontWeight.bold
                                          ),
                                        ),
-                                       Text("Driver",
+                                       Text(item['defaultRole'],
                                          style: TextStyle(
                                              fontSize: 13,
                                              fontWeight: FontWeight.w300
                                          ),
+                                       ),
+                                       Row(
+                                         children: [
+                                           if (item['jadwalData'] != null )
+                                             ClipOval(
+                                               child: Image.asset(
+                                                 'assets/img/BeepBeepUFO.png',
+                                                 width: 20.0, // Sesuaikan ukuran gambar sesuai kebutuhan
+                                                 height: 20.0, // Sesuaikan ukuran gambar sesuai kebutuhan
+                                                 fit: BoxFit.cover,
+                                               ),
+                                             ),
+                                           SizedBox(width: 5,),
+                                           Text(item['jadwalData'] != null ? '-> ${item['jadwalData']['nama']}' ?? '' : '',
+                                             style: TextStyle(
+                                                 fontSize: 13,
+                                                 fontWeight: FontWeight.w300
+                                             ),
+                                           ),
+                                         ],
                                        )
                                      ],
                                    ),

@@ -15,12 +15,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:csv/csv.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 
-class riwayatHrdPage extends StatefulWidget {
+class riwayatGAPage extends StatefulWidget {
   String tokenDriver;
   String idDriver;
   String nameDriver;
 
-  riwayatHrdPage({
+  riwayatGAPage({
     required this.idDriver,
     required this.tokenDriver,
     required this.nameDriver,
@@ -28,11 +28,11 @@ class riwayatHrdPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _riwayatHrdPageState createState() =>
-      _riwayatHrdPageState();
+  _riwayatGAPageState createState() =>
+      _riwayatGAPageState();
 }
 
-class _riwayatHrdPageState extends State<riwayatHrdPage> {
+class _riwayatGAPageState extends State<riwayatGAPage> {
 
   DateTime? selectedDate1 = null;
   DateTime? selectedDate2 = null;
@@ -55,6 +55,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
   List<Map<String, dynamic>> detailBbsenData = [];
   List<Map<String, dynamic>> detailRencanaRute = [];
   RxList<Map<String, dynamic>> waData = <Map<String, dynamic>>[].obs;
+  RxList<Map<String, dynamic>> dataOwner = <Map<String, dynamic>>[].obs;
 
   late String formattedDate;
   late String currentTime;
@@ -106,63 +107,63 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                     Column(
                       children: [
                         if (namaOwner != '')
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                              color: Color.fromRGBO(218, 218, 218, 1),
-                              border: Border.all(
-                                color: Colors.black, // Warna border yang diinginkan
-                                width: 1.0, // Ketebalan border
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text('Ditugaskan ke',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.arrow_right_sharp),
-                                          Text(namaOwner ?? '',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-
-                                  Spacer(),
-
-                                  if (cekApprove == true)
-                                    Icon(
-                                      Icons.check,
-                                      color: Colors.green,
-                                    )
-                                  else
-                                    Icon(
-                                      Icons.close,
-                                      color: Colors.red,
-                                    ),
-                                ],
-                              ),
+                         Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                            color: Color.fromRGBO(218, 218, 218, 1),
+                            border: Border.all(
+                              color: Colors.black, // Warna border yang diinginkan
+                              width: 1.0, // Ketebalan border
                             ),
                           ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text('Ditugaskan ke',
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.arrow_right_sharp),
+                                        Text(namaOwner ?? '',
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+
+                                Spacer(),
+
+                                if (cekApprove == true)
+                                  Icon(
+                                    Icons.check,
+                                    color: Colors.green,
+                                  )
+                                else
+                                  Icon(
+                                    Icons.close,
+                                    color: Colors.red,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
                         SizedBox(height: 15,),
                         for(var item in detailBbsenData)
                           Column(
@@ -400,7 +401,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id').format(now);
     updateTime();
     fetchData1();
-    fetchDataWA();
+    fetchDataWA2();
     fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32))), DateFormat('yyyy-MM-dd').format(DateTime.now()));
   }
 
@@ -454,6 +455,15 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
 //     tanggal
 //     has_approve
 //   }
+//   jadwal_driver(where: {tanggal: {_eq: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}}) {
+//             driver_id
+//             id
+//             tanggal
+//             owner_id
+//             owner {
+//               displayName
+//             }
+//           }
 // }
 //       '''),
 //       ),
@@ -485,7 +495,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
             where: {
               tanggal: {
                 _lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
-                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 31)))}"
+                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32)))}"
               }
             },
             order_by: {tanggal: desc}
@@ -498,12 +508,19 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
             tanggal
             has_approve
           }
-          jadwal_driver{
-            driver_id 
+          jadwal_driver(
+            where: {
+              tanggal: {
+                _lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
+                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32)))}"
+              }
+            }
+          ) {
+            driver_id
             id
             tanggal
+            owner_id
             owner {
-              id
               displayName
             }
           }
@@ -524,7 +541,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
       for (var jadwal in jadwalData) {
         String driverId = jadwal['driver_id'];
         String tanggal = jadwal['tanggal'];
-        Map<String, dynamic> owner = jadwal['owner'] ?? {};
+        Map<String, dynamic> owner = jadwal['owner'];
         ownerDataMap['$driverId-$tanggal'] = owner;
       }
 
@@ -542,15 +559,134 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
 
       // Hasil akhir diassign ke absenData
       absenData.value = statusAbsenData;
-      for (var jadwal in jadwalData) {
-        print('Owner Data: ${jadwal['owner']}');
-        // rest of the loop
-      }
 
-      print(absenData[2]['ownerData']['id']);
+      print(absenData);
     }
   }
-  Future<void> fetchDataWA() async {
+
+//   Future<void> fetchDataWA() async {
+//     final GraphQLClient client = GraphQLClient(
+//       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
+//         defaultHeaders: {
+//           'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
+//         },
+//       ),
+//       cache: GraphQLCache(),
+//     );
+//
+//     final QueryResult result = await client.query(
+//       QueryOptions(
+//         document: gql('''
+//           query MyQuery {
+//   users(where: {defaultRole: {_eq: "driver"}}) {
+//   defaultRole
+//     displayName
+//     email
+//     id
+//   }
+//   jadwal_driver {
+//     driver_id
+//     id
+//     tanggal
+//     owner_id
+//   }
+// }
+//       '''),
+//       ),
+//     );
+//
+//     if (result.hasException) {
+//       print('Error Cuy: ${result.exception.toString()}');
+//       print(widget.tokenDriver);
+//     } else {
+//       waData.value = List<Map<String, dynamic>>.from(result.data?['users'] ?? []);
+//       print(waData);
+//     }
+//   }
+  Future<void> fetchDataWA2() async {
+    final GraphQLClient client = GraphQLClient(
+      link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
+        defaultHeaders: {
+          'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
+        },
+      ),
+      cache: GraphQLCache(),
+    );
+
+    final QueryResult result = await client.query(
+      QueryOptions(
+        document: gql('''
+        query MyQuery {
+          users(where: {defaultRole: {_eq: "driver"}}) {
+            defaultRole
+            displayName
+            email
+            id
+          }
+          jadwal_driver(where: {tanggal: {_eq: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}}) {
+            driver_id
+            id
+            tanggal
+            owner_id
+            owner {
+              displayName
+            }
+          }
+        }
+      '''),
+      ),
+    );
+
+    print('Raw Query Result:');
+    print(result.data);
+
+    if (result.hasException) {
+      print('Error Cuy: ${result.exception.toString()}');
+      print(widget.tokenDriver);
+    } else {
+      List<Map<String, dynamic>> usersData =
+      List<Map<String, dynamic>>.from(result.data?['users'] ?? []);
+
+      List<Map<String, dynamic>> jadwalData =
+      List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
+
+      // Menggunakan Map untuk menyimpan data driver berdasarkan ID
+      Map<String, Map<String, dynamic>> driversMap = {};
+
+      // Memasukkan data driver dari users ke dalam Map
+      for (Map<String, dynamic> user in usersData) {
+        String driverId = user['id'];
+        driversMap[driverId] = {
+          'displayName': user['displayName'],
+          'defaultRole': user['defaultRole'],
+          'idDriver' : user['id']
+        };
+      }
+
+      // Memasukkan data driver dari jadwal_driver ke dalam Map
+      for (Map<String, dynamic> jadwal in jadwalData) {
+        String driverId = jadwal['driver_id'];
+
+        // Memastikan bahwa driversMap[driverId] tidak null sebelum mengakses elemennya
+        if (driversMap[driverId] != null) {
+          // Jika ID driver sudah ada di Map, tambahkan informasi baru
+          driversMap[driverId]!['jadwalData'] = {
+            'id': jadwal['id'],
+            'tanggal': jadwal['tanggal'],
+            'nama' : jadwal['owner']['displayName'],
+            // tambahkan informasi lain sesuai kebutuhan
+          };
+        }
+      }
+
+      // Hasil akhir diassign ke waData
+      waData.value = driversMap.values.toList();
+
+      print("ini sinya ${waData[0]['idDriver']}");
+    }
+  }
+
+  Future<void> fetchDataOwner() async {
     final GraphQLClient client = GraphQLClient(
       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
         defaultHeaders: {
@@ -564,7 +700,8 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
       QueryOptions(
         document: gql('''
           query MyQuery {
-  users {
+  users(where: {defaultRole: {_eq: "owner"}}) {
+  defaultRole
     displayName
     email
     id
@@ -578,7 +715,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
       print('Error Cuy: ${result.exception.toString()}');
       print(widget.tokenDriver);
     } else {
-      waData.value = List<Map<String, dynamic>>.from(result.data?['users'] ?? []);
+      dataOwner.value = List<Map<String, dynamic>>.from(result.data?['users'] ?? []);
       print(waData);
     }
   }
@@ -661,12 +798,19 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
             tanggal
             has_approve
           }
-          jadwal_driver{
-            driver_id 
+          jadwal_driver(
+            where: {
+              tanggal: {
+                _lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
+                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32)))}"
+              }
+            }
+          ) {
+            driver_id
             id
             tanggal
+            owner_id
             owner {
-              id
               displayName
             }
           }
@@ -687,7 +831,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
       for (var jadwal in jadwalData) {
         String driverId = jadwal['driver_id'];
         String tanggal = jadwal['tanggal'];
-        Map<String, dynamic> owner = jadwal['owner'] ?? {};
+        Map<String, dynamic> owner = jadwal['owner'];
         ownerDataMap['$driverId-$tanggal'] = owner;
       }
 
@@ -705,12 +849,8 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
 
       // Hasil akhir diassign ke absenData
       absenData.value = statusAbsenData;
-      for (var jadwal in jadwalData) {
-        print('Owner Data: ${jadwal['owner']}');
-        // rest of the loop
-      }
 
-      print(absenData[2]['ownerData']['id']);
+      print(absenData);
     }
   }
 
@@ -1193,7 +1333,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
   }
   Future<void> refreshDataWA() async {
     // Tambahkan logika pembaruan data di sini
-    await fetchDataWA();
+    await fetchDataWA2();
   }
   Map<String, List<Map<String, dynamic>>> groupedData = {};
 
@@ -1367,6 +1507,177 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     );
   }
 
+  void showPilihDriver(BuildContext context, String driverId) {
+    final screenSize = MediaQuery.of(context).size;
+    String selectedOwnerId = '';
+    bool isChecked = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+            builder: (context, setState) {
+              return SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                child: Container(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: ListView(
+                    shrinkWrap: true,
+                    physics: AlwaysScrollableScrollPhysics(),
+                    children: <Widget>[
+                      Container(
+                        padding: EdgeInsets.all(0.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Padding(
+                                padding: EdgeInsets.all(16),
+                                child:  Row(
+                                  children: [
+                                    Text(
+                                      'Ditugaskan ke',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    IconButton(
+                                      icon: Icon(Icons.close),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                            ),
+                            for (var item in dataOwner)
+                              Column(
+                                children: [
+                                  Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child:  Container(
+                                        height: 50,
+                                        child: Row(
+                                          children: [
+                                            Radio<String>(
+                                              value: item['id'],
+                                              groupValue: selectedOwnerId,
+                                              onChanged: (String? value) {
+                                                setState(() {
+                                                  selectedOwnerId = value ?? '';
+                                                });
+                                              },
+                                            ),
+                                            ClipOval(
+                                              child: Image.asset(
+                                                'assets/img/BeepBeepUFO.png',
+                                                width: 50.0, // Sesuaikan ukuran gambar sesuai kebutuhan
+                                                height: 50.0, // Sesuaikan ukuran gambar sesuai kebutuhan
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                            SizedBox(width: 10,),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(item['displayName'],
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                                Text(item['defaultRole'],
+                                                  style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w300
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                            Spacer(),
+                                          ],
+                                        ),
+                                      )
+                                  ),
+                                  Container(
+                                    height: 1,
+                                    color: Colors.grey,
+                                  ),
+                                ],
+                              ),
+                            SizedBox(height: 10,),
+                            Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Container(
+                                  height: 50,
+                                  child: CustomButton(
+                                    onPressed: () {
+                                      runMutationFunctionInsertDriver(ownerId: selectedOwnerId, driverId: driverId);
+                                      fetchDataWA2();
+                                      Get.back();
+                                    },
+                                    width: 100,
+                                    height: 100,
+                                    text: 'Kirim',
+                                    radius: 10,
+                                    cekSpacer: false,
+                                    textColor: Colors.white,
+                                    buttonColor: Color.fromRGBO(14, 137, 145, 1),
+                                  ),
+                                ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+        );
+      },
+    );
+  }
+
+  void runMutationFunctionInsertDriver({
+    required String ownerId,
+    required String driverId
+  }) async {
+    final HttpLink httpLink = HttpLink(
+      'http://45.64.3.54:40380/absendriver-api/v1/graphql',
+      defaultHeaders: {
+        'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
+      },
+    );
+
+    final GraphQLClient client = GraphQLClient(
+      link: httpLink,
+      cache: GraphQLCache(),
+    );
+
+    final MutationOptions options = MutationOptions(
+      document: gql('''
+mutation MyMutation {
+  insert_jadwal_driver_one(object:  {driver_id: "$driverId", owner_id: "$ownerId", tanggal: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"}) {
+    id
+  }
+}
+    '''),
+    );
+
+    final QueryResult result = await client.mutate(options);
+
+    if (result.hasException) {
+      print('Mutation error: ${result.exception.toString()}');
+    } else {
+      print('Mutation successful: ${result.data}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1522,7 +1833,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                             onTap: () async {
                               await fetchDataDetail(item['tanggal'], item['driver']['id']);
 
-                              showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '');
+                              showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? item['ownerData']['displayName'] ?? '' : '');
                             },
                             child: Column(
                               children: [
@@ -1565,7 +1876,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text(item['driver']['displayName'],
+                                                Text(item['driver']['displayName'] ?? '',
                                                   style: TextStyle(
                                                       fontSize: 16,
                                                       fontWeight: FontWeight.bold
@@ -1627,7 +1938,6 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                Padding(
                                    padding: EdgeInsets.all(16),
                                    child:  Container(
-                                     height: 50,
                                      child: Row(
                                        children: [
                                          ClipOval(
@@ -1642,21 +1952,52 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                          Column(
                                            crossAxisAlignment: CrossAxisAlignment.start,
                                            children: [
-                                             Text(item['displayName'],
+                                             Text(item['displayName'] ?? '',
                                                style: TextStyle(
                                                    fontSize: 16,
                                                    fontWeight: FontWeight.bold
                                                ),
                                              ),
-                                             Text("Driver",
+                                             Text(item['defaultRole'] ?? '',
                                                style: TextStyle(
                                                    fontSize: 13,
                                                    fontWeight: FontWeight.w300
                                                ),
+                                             ),
+                                             Row(
+                                               children: [
+                                                 if (item['jadwalData'] != null )
+                                                   ClipOval(
+                                                   child: Image.asset(
+                                                     'assets/img/BeepBeepUFO.png',
+                                                     width: 20.0, // Sesuaikan ukuran gambar sesuai kebutuhan
+                                                     height: 20.0, // Sesuaikan ukuran gambar sesuai kebutuhan
+                                                     fit: BoxFit.cover,
+                                                   ),
+                                                 ),
+                                                 SizedBox(width: 5,),
+                                                 Text(item['jadwalData'] != null ? '-> ${item['jadwalData']['nama']}' ?? '' : '',
+                                                   style: TextStyle(
+                                                       fontSize: 13,
+                                                       fontWeight: FontWeight.w300
+                                                   ),
+                                                 ),
+                                               ],
                                              )
                                            ],
                                          ),
                                          Spacer(),
+                                         InkWell(
+                                           onTap: () async {
+                                             await fetchDataOwner();
+                                             showPilihDriver(context, item['idDriver']);
+                                           },
+                                           child: Icon(
+                                             Icons.person_add_alt_1_outlined,
+                                             size: 35,
+                                           ),
+                                         ),
+                                         SizedBox(width: 10,),
                                          Image.asset('assets/img/iconWhatsapp.png',
                                            scale: 3.5,
                                          )

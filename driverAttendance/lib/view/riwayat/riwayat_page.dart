@@ -51,7 +51,7 @@ class _riwayatPageState extends State<riwayatPage> {
 
   late String formattedDate;
   late String currentTime;
-  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal) {
+  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal, String namaOwner) {
     final screenSize = MediaQuery.of(context).size;
     showModalBottomSheet(
       context: context,
@@ -97,6 +97,65 @@ class _riwayatPageState extends State<riwayatPage> {
                   if (cekKosong == true)
                     Column(
                       children: [
+                        if (namaOwner != '')
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                              color: Color.fromRGBO(218, 218, 218, 1),
+                              border: Border.all(
+                                color: Colors.black, // Warna border yang diinginkan
+                                width: 1.0, // Ketebalan border
+                              ),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text('Ditugaskan ke',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.arrow_right_sharp),
+                                          Text(namaOwner ?? '',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+
+                                  Spacer(),
+
+                                  if (detailApprove[0]['has_approve'] == true)
+                                    Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                    )
+                                  else
+                                    Icon(
+                                      Icons.close,
+                                      color: Colors.red,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        SizedBox(height: 15,),
                         for(var item in detailBbsenData)
                           Column(
                             children: [
@@ -334,13 +393,11 @@ class _riwayatPageState extends State<riwayatPage> {
     formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id').format(now);
     updateTime();
     setState(() {
-      fetchData();
+      fetchData1();
     });
   }
 
-
-
-  Future<void> fetchData() async {
+  Future<void> fetchData1() async {
     final GraphQLClient client = GraphQLClient(
       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
         defaultHeaders: {
@@ -353,25 +410,74 @@ class _riwayatPageState extends State<riwayatPage> {
     final QueryResult result = await client.query(
       QueryOptions(
         document: gql('''
-        query MyQuery{
-  status_absen(order_by: {tanggal: desc}, limit: 30) {
-    has_absen
-    tanggal
-    has_approve
-  }
-}
+        query MyQuery {
+          status_absen(
+            where: {
+              tanggal: {
+                _lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
+                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 7)))}"
+              }
+            },
+            order_by: {tanggal: desc}
+          ) {
+            driver {
+              displayName
+            }
+            user_id
+            has_absen
+            tanggal
+            has_approve
+          }
+          jadwal_driver{
+            driver_id 
+            id
+            tanggal
+            owner {
+              displayName
+            }
+            owner_id
+          }
+        }
       '''),
       ),
     );
 
     if (result.hasException) {
-      print('Error: ${result.exception.toString()}');
+      print('Error Cuy: ${result.exception.toString()}');
+      print(widget.tokenDriver);
     } else {
-      absenData.value = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> statusAbsenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> jadwalData = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
 
-      // Hasilnya adalah groupedData yang berisi data yang sudah dikelompokkan berdasarkan tanggal
-      for (var item in absenData)
-        print(item['has_absen']); 
+      // Membuat Map untuk mengakses ownerData berdasarkan driver_id dan tanggal
+      Map<String, Map<String, dynamic>> ownerDataMap = {};
+      for (var jadwal in jadwalData) {
+        String driverId = jadwal['driver_id'];
+        String tanggal = jadwal['tanggal'];
+        Map<String, dynamic> owner = jadwal['owner'] ?? {};
+        ownerDataMap['$driverId-$tanggal'] = owner;
+      }
+
+      // Menggabungkan hasil dari status_absen dan jadwal_driver
+      for (var absen in statusAbsenData) {
+        String driverId = absen['user_id'];
+        String tanggal = absen['tanggal'];
+        Map<String, dynamic>? owner = ownerDataMap['$driverId-$tanggal'];
+
+        if (owner != null) {
+          // Menambahkan data owner ke dalam status_absen
+          absen['ownerData'] = owner;
+        }
+      }
+
+      // Hasil akhir diassign ke absenData
+      absenData.value = statusAbsenData;
+      for (var jadwal in jadwalData) {
+        print('Owner Data: ${jadwal['owner']}');
+        // rest of the loop
+      }
+
+      print(absenData[2]['ownerData']['displayName']);
     }
   }
   Future<void> fetchCondition(String tanggalAwal, String tanggalAkhir) async {
@@ -387,25 +493,74 @@ class _riwayatPageState extends State<riwayatPage> {
     final QueryResult result = await client.query(
       QueryOptions(
         document: gql('''
-       query MyQuery {
-  status_absen(where: {tanggal: {_gte: "$tanggalAwal"}, _and: {tanggal: {_lte: "$tanggalAkhir"}}}, order_by: {tanggal: desc}, limit: 30 ) {
-    has_absen
-    tanggal
-    has_approve
-  }
-}
+        query MyQuery {
+          status_absen(
+            where: {
+              tanggal: {
+                _lte: "${tanggalAkhir}",
+                _gte: "${tanggalAwal}"
+              }
+            },
+            order_by: {tanggal: desc}
+          ) {
+            driver {
+              displayName
+            }
+            user_id
+            has_absen
+            tanggal
+            has_approve
+          }
+          jadwal_driver{
+            driver_id 
+            id
+            tanggal
+            owner {
+              displayName
+            }
+            owner_id
+          }
+        }
       '''),
       ),
     );
 
     if (result.hasException) {
-      print('Error: ${result.exception.toString()}');
+      print('Error Cuy: ${result.exception.toString()}');
+      print(widget.tokenDriver);
     } else {
-      absenData.value = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> statusAbsenData = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      List<Map<String, dynamic>> jadwalData = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
 
-      // Hasilnya adalah groupedData yang berisi data yang sudah dikelompokkan berdasarkan tanggal
-      for (var item in absenData)
-        print(item['has_absen']);
+      // Membuat Map untuk mengakses ownerData berdasarkan driver_id dan tanggal
+      Map<String, Map<String, dynamic>> ownerDataMap = {};
+      for (var jadwal in jadwalData) {
+        String driverId = jadwal['driver_id'];
+        String tanggal = jadwal['tanggal'];
+        Map<String, dynamic> owner = jadwal['owner'] ?? {};
+        ownerDataMap['$driverId-$tanggal'] = owner;
+      }
+
+      // Menggabungkan hasil dari status_absen dan jadwal_driver
+      for (var absen in statusAbsenData) {
+        String driverId = absen['user_id'];
+        String tanggal = absen['tanggal'];
+        Map<String, dynamic>? owner = ownerDataMap['$driverId-$tanggal'];
+
+        if (owner != null) {
+          // Menambahkan data owner ke dalam status_absen
+          absen['ownerData'] = owner;
+        }
+      }
+
+      // Hasil akhir diassign ke absenData
+      absenData.value = statusAbsenData;
+      for (var jadwal in jadwalData) {
+        print('Owner Data: ${jadwal['owner']}');
+        // rest of the loop
+      }
+
+      print(absenData[2]['ownerData']['displayName']);
     }
   }
   Future<void> fetchDataDetail(String tanggal) async {
@@ -471,7 +626,7 @@ rencana_rute(where: {user_id: {_eq: "${widget.idDriver}"}, _and: {tanggal: {_eq:
 
   Future<void> refreshData() async {
     // Tambahkan logika pembaruan data di sini
-    await fetchData();
+    await fetchData1();
   }
 
   @override
@@ -551,7 +706,7 @@ rencana_rute(where: {user_id: {_eq: "${widget.idDriver}"}, _and: {tanggal: {_eq:
                                     setState(() {
                                       selectedDate1 = null;
                                       selectedDate2 = null;
-                                      fetchData();
+                                      fetchData1();
                                     });
                                   },
                                   child: Icon(Icons.close),
@@ -567,7 +722,7 @@ rencana_rute(where: {user_id: {_eq: "${widget.idDriver}"}, _and: {tanggal: {_eq:
                   InkWell(
                     onTap: () async {
                       await fetchDataDetail(item['tanggal']);
-                      showDetailAbsensiModal(context, item['has_absen'], item['tanggal']
+                      showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : ''
                       );
                     },
                     child: Column(
@@ -615,6 +770,13 @@ rencana_rute(where: {user_id: {_eq: "${widget.idDriver}"}, _and: {tanggal: {_eq:
                                           fontWeight: FontWeight.bold
                                       ),
                                     ),
+                                    if (item['ownerData'] != null)
+                                      Text(
+                                        item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                        ),
+                                      ),
                                     if (item['has_absen'] == false)
                                       Text('Tidak ada aktifitas terekam',
                                         style: TextStyle(
