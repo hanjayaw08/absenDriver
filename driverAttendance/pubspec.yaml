@@ -64,6 +64,8 @@ dependencies:
   nhost_storage_dart: ^1.0.1
   camera: ^0.10.5+9
   image_picker: ^1.0.7
+  permission_handler: ^11.2.0
+  flutter_web_browser: ^0.17.1
 
 dev_dependencies:
   flutter_test:

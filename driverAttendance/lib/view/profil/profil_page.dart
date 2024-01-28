@@ -3,6 +3,7 @@ import 'package:driverattendance/component/textField.dart';
 import 'package:driverattendance/linkUtama_server.dart';
 import 'package:driverattendance/view/home/splashScreen_page.dart';
 import 'package:driverattendance/view/profil/bantuan_page.dart';
+import 'package:driverattendance/view/profil/informasiAplikasi_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -10,16 +11,21 @@ import 'package:nhost_dart/nhost_dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 class profilPage extends StatefulWidget {
   String password;
   String displayName;
   String email;
+  String idUSer;
+  String token;
 
   profilPage({
     required this.password,
     required this.displayName,
     required this.email,
+    required this.token,
+    required this.idUSer,
     Key? key,
   }) : super(key: key);
 
@@ -32,20 +38,26 @@ class _profilPageState extends State<profilPage> {
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
+  void initState() {
+    super.initState();
+    fetchAbsensi();
+  }
 
   void performLogout() async {
     // Hapus data sesi dan data pengguna
+    showLoadingIndicator();
     await nhost.auth.signOut();
     await clearLoginState();
     await AwesomeNotifications().cancelAll();
     await _firebaseMessaging.deleteToken();
+    hideLoadingIndicator();
     Get.offAll(splashScreenPage());
   }
 
   Future<void> clearLoginState() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('userId');
-    await prefs.remove('userRole');
+    await prefs.remove('email');
+    await prefs.remove('password');
   }
 
   Future<void> gantiPassword() async {
@@ -279,7 +291,39 @@ class _profilPageState extends State<profilPage> {
     );
   }
 
+  Future<void> fetchAbsensi() async {
+    final GraphQLClient client = GraphQLClient(
+      link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
+        defaultHeaders: {
+          'Authorization': 'Bearer ${widget.token}', // Ganti dengan token autentikasi Anda
+        },
+      ),
+      cache: GraphQLCache(),
+    );
 
+    final QueryResult result = await client.query(
+      QueryOptions(
+        document: gql('''
+          query MyQuery {
+  users(where: {id: {_eq: "${widget.idUSer}"}}) {
+    displayName
+    email
+    phoneNumber
+  }
+}
+      '''),
+      ),
+    );
+
+    if (result.hasException) {
+      print('Error: ${result.exception.toString()}');
+    } else {
+      absensi.value = RxList<Map<String, dynamic>>(List<Map<String, dynamic>>.from(result.data?['users'] ?? []));
+      print(absensi[0]['email']);
+    }
+  }
+
+  RxList<Map<String, dynamic>> absensi = RxList<Map<String, dynamic>>([]);
 
   @override
   Widget build(BuildContext context) {
@@ -346,24 +390,30 @@ class _profilPageState extends State<profilPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(widget.email,
+                          Obx(() => Text(absensi.isNotEmpty && absensi[0]['email'] != null
+                              ? absensi[0]['email']
+                              : '',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16
                             ),
-                          ),
-                          Text(widget.displayName,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w300,
-                                fontSize: 13
-                            ),
-                          ),
-                          Text('0812345688',
+                          ),),
+                          Obx(() => Text(absensi.isNotEmpty && absensi[0]['displayName'] != null
+                              ? absensi[0]['displayName']
+                              : '',
                             style: TextStyle(
                                 fontWeight: FontWeight.w300,
                                 fontSize: 13
                             ),
-                          ),
+                          ),),
+                          Obx(() => Text(absensi.isNotEmpty && absensi[0]['phoneNumber'] != null
+                              ? absensi[0]['phoneNumber']
+                              : '',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w300,
+                                fontSize: 13
+                            ),
+                          )),
                         ],
                       )
                     ),
@@ -431,7 +481,7 @@ class _profilPageState extends State<profilPage> {
                           height: 35,
                           child: CustomButton(
                             onPressed: (){
-
+                              Get.to(informasiAplikasiView());
                             },
                             width: 100,
                             height: 100,
@@ -452,7 +502,14 @@ class _profilPageState extends State<profilPage> {
                     ),
                   ],
                 ),
-            )
+            ),
+            if (isLoading)
+              Container(
+                height: MediaQuery.of(context).size.height,  // Menyesuaikan tinggi dengan tinggi layar
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
           ],
         )
       ),

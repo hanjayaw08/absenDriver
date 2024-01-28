@@ -28,21 +28,23 @@ class navBarHrdPage extends StatefulWidget {
 }
 
 class _navBarHrdPageState extends State<navBarHrdPage> {
+  late PageController _pageController;
   int _currentIndex = 0;
 
-  late List<Widget> _pages;
+  @override
   void initState() {
     super.initState();
-    _pages = [
-      homeHrdPage(idDriver: widget.idDriver, nameDriver: widget.namaDriver, tokenDriver: widget.tokenDriver,navigateToJanjiTamu: navigateToJanjiTamu,),
-      riwayatHrdPage(idDriver: widget.idDriver, tokenDriver: widget.tokenDriver, nameDriver: widget.namaDriver),
-      profilPage(password: widget.password, displayName: widget.namaDriver, email: widget.emailDriver,),
-    ];
+    _pageController = PageController(initialPage: _currentIndex);
   }
 
   void navigateToJanjiTamu(int index) {
     setState(() {
       _currentIndex = index;
+      _pageController.animateToPage(
+        _currentIndex,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     });
   }
 
@@ -50,16 +52,23 @@ class _navBarHrdPageState extends State<navBarHrdPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: null,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        children: [
+          homeHrdPage(idDriver: widget.idDriver, nameDriver: widget.namaDriver, tokenDriver: widget.tokenDriver, navigateToJanjiTamu: navigateToJanjiTamu,),
+          riwayatHrdPage(idDriver: widget.idDriver, tokenDriver: widget.tokenDriver, nameDriver: widget.namaDriver),
+          profilPage(password: widget.password, displayName: widget.namaDriver, email: widget.emailDriver, idUSer:  widget.idDriver, token: widget.tokenDriver,),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          navigateToJanjiTamu(index);
         },
         selectedItemColor: Colors.black, // Warna ketika item dipilih
         unselectedItemColor: Colors.grey,
@@ -80,7 +89,14 @@ class _navBarHrdPageState extends State<navBarHrdPage> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 }
+
 
 class Page1 extends StatelessWidget {
   @override

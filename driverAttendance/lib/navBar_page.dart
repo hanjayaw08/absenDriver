@@ -24,6 +24,7 @@ class navBarPage extends StatefulWidget {
 }
 
 class _navBarPageState extends State<navBarPage> {
+  late PageController _pageController;
   int _currentIndex = 0;
 
   void navigateToJanjiTamu(int index) {
@@ -32,23 +33,43 @@ class _navBarPageState extends State<navBarPage> {
     });
   }
 
-  late List<Widget> _pages;
+  @override
   void initState() {
     super.initState();
-    _pages = [
-      homePage(tokenDriver: widget.tokenDriver, nameDriver: widget.namaDriver, idDriver: widget.idDriver, navigateToJanjiTamu: navigateToJanjiTamu,),
-      riwayatPage(tokenDriver: widget.tokenDriver, nameDriver: widget.namaDriver, idDriver: widget.idDriver,),
-      profilPage(password: widget.password,displayName: widget.namaDriver, email: widget.emailDriver,),
-    ];
+    _pageController = PageController(initialPage: _currentIndex);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: null,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        children: [
+          homePage(
+            tokenDriver: widget.tokenDriver,
+            nameDriver: widget.namaDriver,
+            idDriver: widget.idDriver,
+            navigateToJanjiTamu: _pageController.jumpToPage, // Perhatikan perubahan di sini
+          ),
+          riwayatPage(
+            tokenDriver: widget.tokenDriver,
+            nameDriver: widget.namaDriver,
+            idDriver: widget.idDriver,
+          ),
+          profilPage(
+            password: widget.password,
+            displayName: widget.namaDriver,
+            email: widget.emailDriver,
+            idUSer: widget.idDriver,
+            token: widget.tokenDriver,
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -56,8 +77,9 @@ class _navBarPageState extends State<navBarPage> {
           setState(() {
             _currentIndex = index;
           });
+          _pageController.jumpToPage(index);
         },
-        selectedItemColor: Colors.black, // Warna ketika item dipilih
+        selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         items: [
           BottomNavigationBarItem(
@@ -77,6 +99,7 @@ class _navBarPageState extends State<navBarPage> {
     );
   }
 }
+
 
 class Page1 extends StatelessWidget {
   @override

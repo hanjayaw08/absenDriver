@@ -154,6 +154,69 @@ class _splashScreenPageState extends State<splashScreenPage> {
       hideLoadingIndicator();
     }
   }
+  Future<void> performSilentLogin() async {
+    try {
+      // Ambil data login terakhir dari SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString('email');
+      final password = prefs.getString('password');
+
+      if (email != null && password != null) {
+        // Melakukan login ulang dengan data terakhir
+        await nhost.auth.signInEmailPassword(
+          email: email,
+          password: password,
+        );
+
+        // Mendapatkan data pengguna setelah login ulang
+        final currentUser = nhost.auth.currentUser;
+        final tokenUser = nhost.auth.accessToken;
+
+        // Menyimpan ulang data login state
+        await saveLoginState(
+          tokenUser.toString(),
+          currentUser?.defaultRole,
+          currentUser?.displayName ?? '',
+          password,
+          currentUser?.id ?? '',
+          email,
+        );
+
+        if (currentUser?.defaultRole == 'driver') {
+          await _firebaseMessaging.getToken().then((String? token) {
+            assert(token != null);
+            print("FCM Token: $token");
+
+            // Simpan token dalam variabel
+            fcmToken = token!;
+          });
+          insertFCM(token: tokenUser.toString(), tokenFCM: fcmToken.toString());
+          Get.to(navBarPage(
+            tokenDriver: tokenUser.toString(),
+            idDriver: currentUser!.id,
+            namaDriver: currentUser!.displayName,
+            password: passwordText.text,
+            emailDriver: currentUser.email ?? '',
+          ));
+        } else if (currentUser?.defaultRole == 'hrd') {
+          Get.to(navBarHrdPage(idDriver: currentUser!.id, tokenDriver: tokenUser.toString(), namaDriver: currentUser!.displayName, password: passwordText.text, emailDriver: currentUser.email ?? '',));
+        } else if (currentUser?.defaultRole == 'owner') {
+          Get.to(navBarOwnerPage(
+            idDriver: currentUser!.id,
+            namaDriver: currentUser!.displayName,
+            tokenDriver: tokenUser.toString(),
+            password: passwordText.text,
+            emailDriver: currentUser.email ?? '',
+          ));
+        }else if (currentUser?.defaultRole == 'ga') {
+          Get.to(navBarGAPage(idDriver: currentUser!.id, tokenDriver: tokenUser.toString(), namaDriver: currentUser!.displayName, password: passwordText.text, emailDriver: currentUser.email ?? '',));
+        }
+      }
+    } catch (error) {
+      print('Gagal login ulang secara diam-diam: $error');
+    }
+  }
+
 
   void showLoadingIndicator() {
     setState(() {
@@ -178,48 +241,48 @@ class _splashScreenPageState extends State<splashScreenPage> {
     prefs.setString('email', email);
   }
 
-  Future<void> checkLoginState() async {
-    final prefs = await SharedPreferences.getInstance();
-    final tokenId = prefs.getString('tokenId');
-    final userRole = prefs.getString('userRole');
-    final userName = prefs.getString('driverName');
-    final password = prefs.getString('password');
-    final userId = prefs.getString('userId');
-    final email = prefs.getString('email');
-
-    if (tokenId != null && userRole != null) {
-      // Pengguna sudah login, arahkan ke halaman yang sesuai berdasarkan peran
-      if (userRole == 'driver') {
-        await _firebaseMessaging.getToken().then((String? token) {
-          assert(token != null);
-          print("FCM Token: $token");
-
-          // Simpan token dalam variabel
-          fcmToken = token!;
-        });
-        insertFCM(token: tokenId.toString(), tokenFCM: fcmToken.toString());
-        Get.to(navBarPage(
-          idDriver: userId.toString(),
-          tokenDriver: tokenId.toString(),
-          namaDriver: userName.toString(),
-          password: password.toString(),
-          emailDriver: email.toString(),
-        ));
-      } else if (userRole == 'hrd') {
-        Get.to(navBarHrdPage(idDriver: userId.toString(), tokenDriver: tokenId.toString(), namaDriver: userName.toString(), password: password.toString(), emailDriver: email.toString(),));
-      } else if (userRole == 'owner') {
-        Get.to(navBarOwnerPage(
-          idDriver: userId.toString(),
-          namaDriver: userName.toString(),
-          tokenDriver: tokenId.toString(),
-          password: password.toString(),
-          emailDriver: email.toString(),
-        ));
-      } else if (userRole == 'ga') {
-        Get.to(navBarGAPage(idDriver: userId.toString(), tokenDriver: tokenId.toString(), namaDriver: userName.toString(), password: password.toString(), emailDriver: email.toString(),));
-      }
-    }
-  }
+  // Future<void> checkLoginState() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final tokenId = prefs.getString('tokenId');
+  //   final userRole = prefs.getString('userRole');
+  //   final userName = prefs.getString('driverName');
+  //   final password = prefs.getString('password');
+  //   final userId = prefs.getString('userId');
+  //   final email = prefs.getString('email');
+  //
+  //   if (tokenId != null && userRole != null) {
+  //     // Pengguna sudah login, arahkan ke halaman yang sesuai berdasarkan peran
+  //     if (userRole == 'driver') {
+  //       await _firebaseMessaging.getToken().then((String? token) {
+  //         assert(token != null);
+  //         print("FCM Token: $token");
+  //
+  //         // Simpan token dalam variabel
+  //         fcmToken = token!;
+  //       });
+  //       insertFCM(token: tokenId.toString(), tokenFCM: fcmToken.toString());
+  //       Get.to(navBarPage(
+  //         idDriver: userId.toString(),
+  //         tokenDriver: tokenId.toString(),
+  //         namaDriver: userName.toString(),
+  //         password: password.toString(),
+  //         emailDriver: email.toString(),
+  //       ));
+  //     } else if (userRole == 'hrd') {
+  //       Get.to(navBarHrdPage(idDriver: userId.toString(), tokenDriver: tokenId.toString(), namaDriver: userName.toString(), password: password.toString(), emailDriver: email.toString(),));
+  //     } else if (userRole == 'owner') {
+  //       Get.to(navBarOwnerPage(
+  //         idDriver: userId.toString(),
+  //         namaDriver: userName.toString(),
+  //         tokenDriver: tokenId.toString(),
+  //         password: password.toString(),
+  //         emailDriver: email.toString(),
+  //       ));
+  //     } else if (userRole == 'ga') {
+  //       Get.to(navBarGAPage(idDriver: userId.toString(), tokenDriver: tokenId.toString(), namaDriver: userName.toString(), password: password.toString(), emailDriver: email.toString(),));
+  //     }
+  //   }
+  // }
 
   void insertFCM({
     required String token,
@@ -259,7 +322,8 @@ class _splashScreenPageState extends State<splashScreenPage> {
   @override
   void initState() {
     super.initState();
-    checkLoginState();
+    // checkLoginState();
+    performSilentLogin();
     Future.delayed(Duration(seconds: 3), () {
      cek.value = true;
     });

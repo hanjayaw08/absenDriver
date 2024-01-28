@@ -14,6 +14,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:csv/csv.dart';
 import 'package:maps_launcher/maps_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class riwayatHrdPage extends StatefulWidget {
   String tokenDriver;
@@ -54,7 +56,22 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
   RxList<Map<String, dynamic>> absenData = <Map<String, dynamic>>[].obs;
   List<Map<String, dynamic>> detailBbsenData = [];
   List<Map<String, dynamic>> detailRencanaRute = [];
+  List<Map<String, dynamic>> detailJadwalKerja = [];
   RxList<Map<String, dynamic>> waData = <Map<String, dynamic>>[].obs;
+  String capitalizeFirstLetterOnly(String text) {
+    if (text == null || text.isEmpty) {
+      return text;
+    }
+
+    // Ambil huruf pertama dan ubah menjadi huruf besar
+    String firstLetter = text[0].toUpperCase();
+
+    // Ambil sisa teks dan ubah menjadi huruf kecil
+    String restOfText = text.substring(1).toLowerCase();
+
+    // Gabungkan kembali huruf pertama besar dengan sisa teks yang kecil
+    return '$firstLetter$restOfText';
+  }
 
   late String formattedDate;
   late String currentTime;
@@ -105,65 +122,70 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                   if (cekKosong == true)
                     Column(
                       children: [
-                        if (namaOwner != '')
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                              color: Color.fromRGBO(218, 218, 218, 1),
-                              border: Border.all(
-                                color: Colors.black, // Warna border yang diinginkan
-                                width: 1.0, // Ketebalan border
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text('Ditugaskan ke',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.arrow_right_sharp),
-                                          Text(namaOwner ?? '',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-
-                                  Spacer(),
-
-                                  if (cekApprove == true)
-                                    Icon(
-                                      Icons.check,
-                                      color: Colors.green,
-                                    )
-                                  else
-                                    Icon(
-                                      Icons.close,
-                                      color: Colors.red,
+                        if (detailJadwalKerja.isNotEmpty)
+                          for(var item in detailJadwalKerja)
+                            Column(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                    color: Color.fromRGBO(218, 218, 218, 1),
+                                    border: Border.all(
+                                      color: Colors.black, // Warna border yang diinginkan
+                                      width: 1.0, // Ketebalan border
                                     ),
-                                ],
-                              ),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text('Ditugaskan ke',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.arrow_right_sharp),
+                                                Text(item['owner']['displayName'] ?? '',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+
+                                        Spacer(),
+
+                                        if (cekApprove == true)
+                                          Icon(
+                                            Icons.check,
+                                            color: Colors.green,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.close,
+                                            color: Colors.red,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 15,)
+                              ],
                             ),
-                          ),
-                        SizedBox(height: 15,),
                         for(var item in detailBbsenData)
                           Column(
                             children: [
@@ -201,7 +223,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('Absensi ${item['jenis']}',
+                                            Text('Absensi ${item['jenis'] == 'KELUAR' ? 'Pulang Lebih Awal' : capitalizeFirstLetterOnly(item['jenis'])}',
                                               style: TextStyle(
                                                 fontSize: 16,
                                               ),
@@ -218,7 +240,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                                   Row(
                                                     children: [
                                                       Icon(Icons.arrow_right),
-                                                      Text('Kampus A')
+                                                      Text(item['keterangan'] ?? '')
                                                     ],
                                                   ),
                                               ],
@@ -243,7 +265,14 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                                   ],
                                                 )
                                               ],
-                                            )
+                                            ),
+                                            if(item['jenis' ]== 'SAKIT')
+                                              TextButton(
+                                                  onPressed: (){
+                                                    print(item['files']);
+                                                    Get.back();
+                                                    getPresignedUrl('${item['files']}');
+                                                  }, child: Text('Open Image'))
                                           ],
                                         ),
 
@@ -411,26 +440,6 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     });
   }
 
-  void openWhatsAppOrBrowser() async {
-    String phoneNumber = '081391456376';
-    String whatsappUrl = 'https://wa.me/$phoneNumber';
-
-    // Cek apakah WhatsApp terinstal
-    if (await canLaunch(whatsappUrl)) {
-      // Buka WhatsApp jika terinstal
-      await launch(whatsappUrl);
-    } else {
-      // Buka tautan di browser jika WhatsApp tidak terinstal
-      String browserUrl = 'https://wa.me/$phoneNumber';
-
-      if (await canLaunch(browserUrl)) {
-        await launch(browserUrl);
-      } else {
-        print('Tidak dapat membuka URL di browser');
-      }
-    }
-  }
-
 //   Future<void> fetchData() async {
 //     final GraphQLClient client = GraphQLClient(
 //       link: HttpLink('http://45.64.3.54:40380/absendriver-api/v1/graphql',
@@ -498,7 +507,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
             tanggal
             has_approve
           }
-          jadwal_driver{
+          jadwal_driver (where: {tanggal: {_lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}", _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32)))}"}, _and: {active: {_eq: true}}}){
             driver_id 
             id
             tanggal
@@ -546,8 +555,6 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
         print('Owner Data: ${jadwal['owner']}');
         // rest of the loop
       }
-
-      print(absenData[2]['ownerData']['id']);
     }
   }
   Future<void> fetchDataWA() async {
@@ -568,6 +575,8 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     displayName
     email
     id
+    defaultRole
+    phoneNumber
   }
 }
       '''),
@@ -600,7 +609,9 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     jam
     jenis
     tanggal
+    keterangan
     longitude
+    files
     latitude
   }
   rencana_rute(where: {user_id: {_eq: "$idDriver"}, _and: {tanggal: {_eq: "$tanggal"}}}) {
@@ -611,6 +622,13 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     user_id
     longitude
     latitude
+  }
+   jadwal_driver(where: {tanggal: {_eq: "$tanggal"}, _and: {driver_id: {_eq: "$idDriver"}}}) {
+    tanggal
+    owner {
+      displayName
+      id
+    }
   }
 }
 
@@ -624,7 +642,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
     } else {
       detailBbsenData = List<Map<String, dynamic>>.from(result.data?['absen'] ?? []);
       detailRencanaRute = List<Map<String, dynamic>>.from(result.data?['rencana_rute'] ?? []);
-
+      detailJadwalKerja = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
       // Hasilnya adalah groupedData yang berisi data yang sudah dikelompokkan berdasarkan tanggal
       for (var item in detailBbsenData)
         print(item);
@@ -711,6 +729,13 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
       }
 
       print(absenData[2]['ownerData']['id']);
+    }
+  }
+  void openWhatsAppOrBrowser(String phoneNUmber) async {
+    try {
+      await launch('https://wa.me/$phoneNUmber');
+    } catch (e) {
+      print('Tidak dapat membuka tautan di browser: $e');
     }
   }
 
@@ -1009,7 +1034,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                         ),
                       ),
                       pw.Text(
-                        '$tanggal',
+                        '${DateFormat('EEEE, MMM dd, yyyy', 'id').format(DateTime.parse(tanggal!))}',
                         style: pw.TextStyle(fontSize: 13),
                       ),
                     ],
@@ -1319,10 +1344,15 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
       items.forEach((item) {
         String? nama = item['driver']?['displayName'];
         String action = (item.containsKey('jam'))
-            ? item['jenis'] ?? 'null' // Use 'jenis' for 'absen'
-            : item['keterangan'] ?? 'null'; // Use 'keterangan' for 'rencana_rute'
-
-        csvData.add([tanggal, nama, action]);
+            ? item['jenis'] ?? 'null'
+            : item['keterangan'] ?? 'null';
+        nama ??= 'TIDAK ADA DATA';
+        if (nama.isEmpty || action.isEmpty) {
+          csvData.add([tanggal, 'TIDAK ADA DATA', 'TIDAK ADA DATA']);
+        } else {
+          csvData.add([tanggal, nama, action]);
+        }
+        // csvData.add([tanggal, nama, action]);
       });
     });
 
@@ -1365,6 +1395,44 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
         );
       },
     );
+  }
+
+  void openLinkInBrowser(String url) async {
+    try {
+      await launch('$url');
+    } catch (e) {
+      print('Tidak dapat membuka tautan di browser: $e');
+    }
+  }
+
+  Future<String?> getPresignedUrl(String fileId) async {
+    final apiUrl = 'http://45.64.3.54:40380/absendriver-api/v1/storage/files/$fileId/presignedurl';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl),
+        headers: {'Authorization': 'Bearer ${widget.tokenDriver}'},
+      );
+
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final String presignedUrl = responseData['url'];
+        print(responseData['url']);
+        openLinkInBrowser(responseData['url']);
+        return presignedUrl;
+      } else {
+        print('Failed to get presigned URL. Status code: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Foto tidak ada'),
+            ));
+        return null;
+      }
+    } catch (error) {
+      print('Error getting presigned URL: $error');
+      return null;
+    }
   }
 
 
@@ -1522,7 +1590,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                             onTap: () async {
                               await fetchDataDetail(item['tanggal'], item['driver']['id']);
 
-                              showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '');
+                              showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '');
                             },
                             child: Column(
                               children: [
@@ -1577,11 +1645,16 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                                   ),
                                                 ),
                                                 if (item['ownerData'] != null)
-                                                  Text(
-                                                    item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '',
-                                                    style: TextStyle(
-                                                      fontSize: 13,
-                                                    ),
+                                                  Row(
+                                                    children: [
+                                                      Icon(Icons.arrow_right_alt_rounded),
+                                                      Text(
+                                                        item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '',
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 Text(item['has_absen'] == false ? 'Tidak ada aktifitas terekam' : item['has_approve'] == true ? 'Laporan di Approve' : 'Laporan belum di Approve',
                                                   style: TextStyle(
@@ -1618,59 +1691,59 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                     child: Column(
                       children: [
                         for (var item in waData)
-                         InkWell(
-                           onTap: (){
-                             openWhatsAppOrBrowser();
-                           },
-                           child:  Column(
-                             children: [
-                               Padding(
-                                   padding: EdgeInsets.all(16),
-                                   child:  Container(
-                                     height: 50,
-                                     child: Row(
-                                       children: [
-                                         ClipOval(
-                                           child: Image.asset(
-                                             'assets/img/BeepBeepUFO.png',
-                                             width: 50.0, // Sesuaikan ukuran gambar sesuai kebutuhan
-                                             height: 50.0, // Sesuaikan ukuran gambar sesuai kebutuhan
-                                             fit: BoxFit.cover,
-                                           ),
-                                         ),
-                                         SizedBox(width: 10,),
-                                         Column(
-                                           crossAxisAlignment: CrossAxisAlignment.start,
-                                           children: [
-                                             Text(item['displayName'],
-                                               style: TextStyle(
-                                                   fontSize: 16,
-                                                   fontWeight: FontWeight.bold
-                                               ),
-                                             ),
-                                             Text("Driver",
-                                               style: TextStyle(
-                                                   fontSize: 13,
-                                                   fontWeight: FontWeight.w300
-                                               ),
-                                             )
-                                           ],
-                                         ),
-                                         Spacer(),
-                                         Image.asset('assets/img/iconWhatsapp.png',
-                                           scale: 3.5,
-                                         )
-                                       ],
-                                     ),
-                                   )
-                               ),
-                               Container(
-                                 height: 1,
-                                 color: Colors.grey,
-                               ),
-                             ],
-                           ),
-                         )
+                          Column(
+                            children: [
+                              Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child:  Container(
+                                    height: 50,
+                                    child: Row(
+                                      children: [
+                                        ClipOval(
+                                          child: Image.asset(
+                                            'assets/img/BeepBeepUFO.png',
+                                            width: 50.0, // Sesuaikan ukuran gambar sesuai kebutuhan
+                                            height: 50.0, // Sesuaikan ukuran gambar sesuai kebutuhan
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        SizedBox(width: 10,),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(item['displayName'],
+                                              style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold
+                                              ),
+                                            ),
+                                            Text(item['defaultRole'],
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w300
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                        Spacer(),
+                                        InkWell(
+                                          onTap: (){
+                                            openWhatsAppOrBrowser(item['phoneNumber']);
+                                          },
+                                          child: Image.asset('assets/img/iconWhatsapp.png',
+                                            scale: 3.5,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  )
+                              ),
+                              Container(
+                                height: 1,
+                                color: Colors.grey,
+                              ),
+                            ],
+                          )
                       ],
                     ),
                   ),

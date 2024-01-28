@@ -7,7 +7,9 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:maps_launcher/maps_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class homeHrdPage extends StatefulWidget {
   String tokenDriver;
@@ -41,7 +43,22 @@ class _homeHrdPageState extends State<homeHrdPage> {
   List<Map<String, dynamic>> absenData = [];
   List<Map<String, dynamic>> detailBbsenData = [];
   List<Map<String, dynamic>> detailRencanaRute = [];
+  List<Map<String, dynamic>> detailJadwalKerja = [];
   List<Map<String, dynamic>> latestItems = [];
+  String capitalizeFirstLetterOnly(String text) {
+    if (text == null || text.isEmpty) {
+      return text;
+    }
+
+    // Ambil huruf pertama dan ubah menjadi huruf besar
+    String firstLetter = text[0].toUpperCase();
+
+    // Ambil sisa teks dan ubah menjadi huruf kecil
+    String restOfText = text.substring(1).toLowerCase();
+
+    // Gabungkan kembali huruf pertama besar dengan sisa teks yang kecil
+    return '$firstLetter$restOfText';
+  }
 
   //function untuk absen
 
@@ -111,65 +128,70 @@ class _homeHrdPageState extends State<homeHrdPage> {
                   if (cekKosong == true)
                     Column(
                       children: [
-                        if (namaOwner != '')
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                              color: Color.fromRGBO(218, 218, 218, 1),
-                              border: Border.all(
-                                color: Colors.black, // Warna border yang diinginkan
-                                width: 1.0, // Ketebalan border
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text('Ditugaskan ke',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.arrow_right_sharp),
-                                          Text(namaOwner ?? '',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-
-                                  Spacer(),
-
-                                  if (cekApprove == true)
-                                    Icon(
-                                      Icons.check,
-                                      color: Colors.green,
-                                    )
-                                  else
-                                    Icon(
-                                      Icons.close,
-                                      color: Colors.red,
+                        if (detailJadwalKerja.isNotEmpty)
+                          for(var item in detailJadwalKerja)
+                            Column(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                    color: Color.fromRGBO(218, 218, 218, 1),
+                                    border: Border.all(
+                                      color: Colors.black, // Warna border yang diinginkan
+                                      width: 1.0, // Ketebalan border
                                     ),
-                                ],
-                              ),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text('Ditugaskan ke',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.arrow_right_sharp),
+                                                Text(item['owner']['displayName'] ?? '',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+
+                                        Spacer(),
+
+                                        if (cekApprove == true)
+                                          Icon(
+                                            Icons.check,
+                                            color: Colors.green,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.close,
+                                            color: Colors.red,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 15,)
+                              ],
                             ),
-                          ),
-                        SizedBox(height: 15,),
                         for(var item in detailBbsenData)
                           Column(
                             children: [
@@ -207,7 +229,7 @@ class _homeHrdPageState extends State<homeHrdPage> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('Absensi ${item['jenis']}',
+                                            Text('Absensi ${item['jenis'] == 'KELUAR' ? 'Pulang Lebih Awal' : capitalizeFirstLetterOnly(item['jenis'])}',
                                               style: TextStyle(
                                                 fontSize: 16,
                                               ),
@@ -224,7 +246,7 @@ class _homeHrdPageState extends State<homeHrdPage> {
                                                   Row(
                                                     children: [
                                                       Icon(Icons.arrow_right),
-                                                      Text('Kampus A')
+                                                      Text(item['keterangan'] ?? '')
                                                     ],
                                                   )
                                               ],
@@ -249,7 +271,14 @@ class _homeHrdPageState extends State<homeHrdPage> {
                                                   ],
                                                 )
                                               ],
-                                            )
+                                            ),
+                                            if(item['jenis' ]== 'SAKIT')
+                                              TextButton(
+                                                  onPressed: (){
+                                                    print(item['files']);
+                                                    Get.back();
+                                                    getPresignedUrl('${item['files']}');
+                                                  }, child: Text('Open Image'))
                                           ],
                                         ),
 
@@ -467,7 +496,7 @@ class _homeHrdPageState extends State<homeHrdPage> {
             tanggal
             has_approve
           }
-          jadwal_driver{
+          jadwal_driver(where: {tanggal: {_lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}", _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 7)))}"}, _and: {active: {_eq: true}}}){
             driver_id 
             id
             tanggal
@@ -537,6 +566,8 @@ class _homeHrdPageState extends State<homeHrdPage> {
     jam
     jenis
     tanggal
+    files
+    keterangan
     longitude
     latitude
   }
@@ -548,6 +579,13 @@ class _homeHrdPageState extends State<homeHrdPage> {
     user_id
     longitude
     latitude
+  }
+  jadwal_driver(where: {tanggal: {_eq: "$tanggal"}, _and: {driver_id: {_eq: "$idDriver"}}}) {
+    tanggal
+    owner {
+      displayName
+      id
+    }
   }
 }
 
@@ -561,7 +599,7 @@ class _homeHrdPageState extends State<homeHrdPage> {
     } else {
       detailBbsenData = List<Map<String, dynamic>>.from(result.data?['absen'] ?? []);
       detailRencanaRute = List<Map<String, dynamic>>.from(result.data?['rencana_rute'] ?? []);
-
+      detailJadwalKerja = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
       // Hasilnya adalah groupedData yang berisi data yang sudah dikelompokkan berdasarkan tanggal
       for (var item in detailBbsenData)
         print(item);
@@ -570,6 +608,44 @@ class _homeHrdPageState extends State<homeHrdPage> {
   Future<void> refreshData() async {
     // Tambahkan logika pembaruan data di sini
     await fetchData1();
+  }
+
+  void openLinkInBrowser(String url) async {
+    try {
+      await launch('$url');
+    } catch (e) {
+      print('Tidak dapat membuka tautan di browser: $e');
+    }
+  }
+
+  Future<String?> getPresignedUrl(String fileId) async {
+    final apiUrl = 'http://45.64.3.54:40380/absendriver-api/v1/storage/files/$fileId/presignedurl';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl),
+        headers: {'Authorization': 'Bearer ${widget.tokenDriver}'},
+      );
+
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final String presignedUrl = responseData['url'];
+        print(responseData['url']);
+        openLinkInBrowser(responseData['url']);
+        return presignedUrl;
+      } else {
+        print('Failed to get presigned URL. Status code: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Foto tidak ada'),
+            ));
+        return null;
+      }
+    } catch (error) {
+      print('Error getting presigned URL: $error');
+      return null;
+    }
   }
 
   @override
@@ -676,7 +752,7 @@ class _homeHrdPageState extends State<homeHrdPage> {
                               onTap: () async {
                                 await fetchDataDetail(item['tanggal'], item['driver']['id']);
 
-                                showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '');
+                                showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '');
                               },
                               child: Column(
                                 children: [
@@ -731,11 +807,16 @@ class _homeHrdPageState extends State<homeHrdPage> {
                                                     ),
                                                   ),
                                                   if (item['ownerData'] != null)
-                                                    Text(
-                                                      item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '',
-                                                      style: TextStyle(
-                                                        fontSize: 13,
-                                                      ),
+                                                    Row(
+                                                      children: [
+                                                        Icon(Icons.arrow_right_alt_rounded),
+                                                        Text(
+                                                          item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '',
+                                                          style: TextStyle(
+                                                            fontSize: 13,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   Text(item['has_absen'] == false ? 'Tidak ada aktifitas terekam' : item['has_approve'] == true ? 'Laporan di Approve' : 'Laporan belum di Approve',
                                                     style: TextStyle(

@@ -7,8 +7,10 @@ import 'dart:async';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:http/http.dart' as http;
 import 'package:maps_launcher/maps_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 class homeOwnerPage extends StatefulWidget {
   final Function(int) navigateToJanjiTamu;
@@ -45,9 +47,24 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
   List<Map<String, dynamic>> detailBbsenData = [];
   List<Map<String, dynamic>> detailRencanaRute = [];
   List<Map<String, dynamic>> detailApprove = [];
+  List<Map<String, dynamic>> detailJadwalKerja = [];
   List<Map<String, dynamic>> latestItems = [];
   List<int> absenID = [];
   List<int> ruterID = [];
+  String capitalizeFirstLetterOnly(String text) {
+    if (text == null || text.isEmpty) {
+      return text;
+    }
+
+    // Ambil huruf pertama dan ubah menjadi huruf besar
+    String firstLetter = text[0].toUpperCase();
+
+    // Ambil sisa teks dan ubah menjadi huruf kecil
+    String restOfText = text.substring(1).toLowerCase();
+
+    // Gabungkan kembali huruf pertama besar dengan sisa teks yang kecil
+    return '$firstLetter$restOfText';
+  }
 
   //function untuk absen
 
@@ -438,65 +455,70 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                   if (cekKosong == true)
                     Column(
                       children: [
-                        if (namaOwner != '')
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                              color: Color.fromRGBO(218, 218, 218, 1),
-                              border: Border.all(
-                                color: Colors.black, // Warna border yang diinginkan
-                                width: 1.0, // Ketebalan border
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                        if (detailJadwalKerja.isNotEmpty)
+                          for(var item in detailJadwalKerja)
+                            Column(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                  color: Color.fromRGBO(218, 218, 218, 1),
+                                  border: Border.all(
+                                    color: Colors.black, // Warna border yang diinginkan
+                                    width: 1.0, // Ketebalan border
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
-                                      Row(
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text('Ditugaskan ke',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
+                                          Row(
+                                            children: [
+                                              Text('Ditugaskan ke',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold
+                                                ),
+                                              ),
+                                            ],
                                           ),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.arrow_right_sharp),
+                                              Text(item['owner']['displayName'] ?? '',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold
+                                                ),
+                                              ),
+                                            ],
+                                          )
                                         ],
                                       ),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.arrow_right_sharp),
-                                          Text(namaOwner ?? '',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      )
+
+                                      Spacer(),
+
+                                      if (cekApprove == true)
+                                        Icon(
+                                          Icons.check,
+                                          color: Colors.green,
+                                        )
+                                      else
+                                        Icon(
+                                          Icons.close,
+                                          color: Colors.red,
+                                        ),
                                     ],
                                   ),
-
-                                  Spacer(),
-
-                                  if (cekApprove == true)
-                                    Icon(
-                                      Icons.check,
-                                      color: Colors.green,
-                                    )
-                                  else
-                                    Icon(
-                                      Icons.close,
-                                      color: Colors.red,
-                                    ),
-                                ],
+                                ),
                               ),
-                            ),
+                              SizedBox(height: 15,)
+                            ],
                           ),
-                        SizedBox(height: 15,),
                         if (detailBbsenData.isNotEmpty)
                           for(var item in detailBbsenData)
                             Column(
@@ -535,7 +557,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                                           Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Text('Absensi ${item['jenis']}',
+                                              Text('Absensi ${item['jenis'] == 'KELUAR' ? 'Pulang Lebih Awal' : capitalizeFirstLetterOnly(item['jenis'])}',
                                                 style: TextStyle(
                                                   fontSize: 16,
                                                 ),
@@ -552,7 +574,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                                                     Row(
                                                       children: [
                                                         Icon(Icons.arrow_right),
-                                                        Text('Kampus A')
+                                                        Text(item['keterangan'] ?? '')
                                                       ],
                                                     )
                                                 ],
@@ -577,7 +599,14 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                                                     ],
                                                   )
                                                 ],
-                                              )
+                                              ),
+                                              if(item['jenis' ]== 'SAKIT')
+                                                TextButton(
+                                                    onPressed: (){
+                                                      print(item['files']);
+                                                      Get.back();
+                                                      getPresignedUrl('${item['files']}');
+                                                    }, child: Text('Open Image'))
                                             ],
                                           ),
 
@@ -649,7 +678,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                                                   Row(
                                                     children: [
                                                       Icon(Icons.arrow_right),
-                                                      Text(item['keterangan'])
+                                                      Text(item['keterangan'] ?? '')
                                                     ],
                                                   )
                                                 ],
@@ -761,67 +790,67 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                         Text('Tidak ada kegiatan absensi terekam')
                       ],
                     ),
-                  if (cekApprove == false && cekKosong == true)
-                    Row(
-                      children: [
-                        if(detailApprove.isEmpty)
-                          Expanded(
-                          child:  Container(
-                            height: 50,
-                            child: CustomButton(
-                              onPressed: (){
-                                for (var item in detailBbsenData) {
-                                  absenID.add(item['absen_id']);
-                                }
-                                for (var item in detailRencanaRute){
-                                  ruterID.add(item['rute_id']);
-                                }
-                                runMutationFunctionApprove(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal);
-                                fetchData1();
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return RoundPopup();
-                                  },
-                                );
-                                Future.delayed(Duration(seconds: 3), () {
-                                  Get.back();
-                                  Get.back();
-                                });
-                                ruterID = [];
-                                absenID = [];
-                                // print(item['absen_id']);
-                              },
-                              width: 100,
-                              height: 100,
-                              text: 'Approverd',
-                              radius: 10,
-                              cekSpacer: false,
-                              textColor: Colors.white,
-                              buttonColor: Color.fromRGBO(14, 137, 145, 1),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10,),
-                        if(detailApprove.isEmpty)
-                         Container(
-                          height: 50,
-                          child: CustomButton(
-                            onPressed: (){
-                              showTolakApproval(context, driverId, tanggal);
-                            },
-                            width: 100,
-                            height: 100,
-                            text: 'Tolak',
-                            radius: 10,
-                            cekSpacer: false,
-                            textColor: Color.fromRGBO(14, 137, 145, 1),
-                            buttonColor: Colors.white,
-                            borderColor: Color.fromRGBO(14, 137, 145, 1),
-                          ),
-                        )
-                      ],
-                    ),
+                  // if (cekApprove == false && cekKosong == true)
+                  //   Row(
+                  //     children: [
+                  //       if(detailApprove.isEmpty)
+                  //         Expanded(
+                  //         child:  Container(
+                  //           height: 50,
+                  //           child: CustomButton(
+                  //             onPressed: (){
+                  //               for (var item in detailBbsenData) {
+                  //                 absenID.add(item['absen_id']);
+                  //               }
+                  //               for (var item in detailRencanaRute){
+                  //                 ruterID.add(item['rute_id']);
+                  //               }
+                  //               runMutationFunctionApprove(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal);
+                  //               fetchData1();
+                  //               showDialog(
+                  //                 context: context,
+                  //                 builder: (BuildContext context) {
+                  //                   return RoundPopup();
+                  //                 },
+                  //               );
+                  //               Future.delayed(Duration(seconds: 3), () {
+                  //                 Get.back();
+                  //                 Get.back();
+                  //               });
+                  //               ruterID = [];
+                  //               absenID = [];
+                  //               // print(item['absen_id']);
+                  //             },
+                  //             width: 100,
+                  //             height: 100,
+                  //             text: 'Approverd',
+                  //             radius: 10,
+                  //             cekSpacer: false,
+                  //             textColor: Colors.white,
+                  //             buttonColor: Color.fromRGBO(14, 137, 145, 1),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //       SizedBox(width: 10,),
+                  //       if(detailApprove.isEmpty)
+                  //        Container(
+                  //         height: 50,
+                  //         child: CustomButton(
+                  //           onPressed: (){
+                  //             showTolakApproval(context, driverId, tanggal);
+                  //           },
+                  //           width: 100,
+                  //           height: 100,
+                  //           text: 'Tolak',
+                  //           radius: 10,
+                  //           cekSpacer: false,
+                  //           textColor: Color.fromRGBO(14, 137, 145, 1),
+                  //           buttonColor: Colors.white,
+                  //           borderColor: Color.fromRGBO(14, 137, 145, 1),
+                  //         ),
+                  //       )
+                  //     ],
+                  //   ),
                   if (cekApprove == true)
                     Text('Laporan telah di Approve pada ${detailApprove[0]['tanggal']}',
                       style: TextStyle(
@@ -981,7 +1010,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
             tanggal
             has_approve
           }
-          jadwal_driver{
+          jadwal_driver (where: {active: {_eq: true}}){
             driver_id 
             id
             tanggal
@@ -1029,8 +1058,6 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
         print('Owner Data: ${jadwal['owner']}');
         // rest of the loop
       }
-
-      print(absenData[2]['ownerData']['id']);
     }
   }
   Future<void> fetchDataDetail(String tanggal, String idDriver) async {
@@ -1053,6 +1080,8 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
     jenis
     tanggal
     user_id
+    files
+    keterangan
     longitude
     latitude
   }
@@ -1072,6 +1101,14 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
     reject_reason
     tanggal
   }
+  
+  jadwal_driver(where: {tanggal: {_eq: "$tanggal"}, _and: {driver_id: {_eq: "$idDriver"}}}) {
+    tanggal
+    owner {
+      displayName
+      id
+    }
+  }
 }
 
 
@@ -1085,6 +1122,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
       detailBbsenData = List<Map<String, dynamic>>.from(result.data?['absen'] ?? []);
       detailRencanaRute = List<Map<String, dynamic>>.from(result.data?['rencana_rute'] ?? []);
       detailApprove = List<Map<String, dynamic>>.from(result.data?['approval'] ?? []);
+      detailJadwalKerja = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
       // Hasilnya adalah groupedData yang berisi data yang sudah dikelompokkan berdasarkan tanggal
       for (var item in detailBbsenData){
         print(item['id']);
@@ -1094,6 +1132,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
         print(item['id']);
         print(item['user_id']);
         print(item['approve']);}
+      print('ini jadwal kerja $detailJadwalKerja');
     }
   }
 
@@ -1103,6 +1142,44 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
   Future<void> refreshData() async {
     // Tambahkan logika pembaruan data di sini
     await fetchData1();
+  }
+
+  void openLinkInBrowser(String url) async {
+    try {
+      await launch('$url');
+    } catch (e) {
+      print('Tidak dapat membuka tautan di browser: $e');
+    }
+  }
+
+  Future<String?> getPresignedUrl(String fileId) async {
+    final apiUrl = 'http://45.64.3.54:40380/absendriver-api/v1/storage/files/$fileId/presignedurl';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl),
+        headers: {'Authorization': 'Bearer ${widget.tokenDriver}'},
+      );
+
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final String presignedUrl = responseData['url'];
+        print(responseData['url']);
+        openLinkInBrowser(responseData['url']);
+        return presignedUrl;
+      } else {
+        print('Failed to get presigned URL. Status code: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Foto tidak ada'),
+            ));
+        return null;
+      }
+    } catch (error) {
+      print('Error getting presigned URL: $error');
+      return null;
+    }
   }
 
   @override
@@ -1195,7 +1272,8 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                               Spacer(),
                               CustomTextButton(
                                 onPressed: () {
-                                  widget.navigateToJanjiTamu(1);
+                                  // widget.navigateToJanjiTamu(1);
+                                  fetchData1();
                                 },
                                 text: 'Lihat Semua',
                               )
@@ -1206,7 +1284,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                             InkWell(
                               onTap: () async {
                                 await fetchDataDetail(item['tanggal'], item['driver']['id']);
-                                showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '');
+                                showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '');
                               },
                               child: Column(
                                 children: [
@@ -1256,11 +1334,16 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                                                     ),
                                                   ),
                                                   if (item['ownerData'] != null)
-                                                    Text(
-                                                      item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '',
-                                                      style: TextStyle(
-                                                        fontSize: 13,
-                                                      ),
+                                                    Row(
+                                                      children: [
+                                                        Icon(Icons.arrow_right_alt_rounded),
+                                                        Text(
+                                                          item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '',
+                                                          style: TextStyle(
+                                                            fontSize: 13,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   Text(DateFormat('EEEE, d MMM y', 'id').format(DateTime.parse(item['tanggal'])),
                                                       style: TextStyle(
@@ -1296,8 +1379,8 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                                           SizedBox(height: 10,),
                                           if (item['has_absen'] == true
                                               && item['tanggal'] == DateFormat('yyyy-MM-dd').format(DateTime.now()) &&
-                                          item['ownerData']['id'] == widget.idDriver
-                                          )
+                                              item['ownerData'] != null &&
+                                              item['ownerData']['id'] == widget.idDriver)
                                             Container(
                                               height: 40,
                                               child: CustomButton(

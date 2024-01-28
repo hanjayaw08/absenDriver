@@ -9,6 +9,10 @@ import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:maps_launcher/maps_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:url_launcher/url_launcher.dart';
 
 class homeGAPage extends StatefulWidget {
   final Function(int) navigateToJanjiTamu;
@@ -44,9 +48,24 @@ class _homeGAPageState extends State<homeGAPage> {
   List<Map<String, dynamic>> detailBbsenData = [];
   List<Map<String, dynamic>> detailRencanaRute = [];
   List<Map<String, dynamic>> detailApprove = [];
+  List<Map<String, dynamic>> detailJadwalKerja = [];
   List<Map<String, dynamic>> latestItems = [];
   List<int> absenID = [];
   List<int> ruterID = [];
+  String capitalizeFirstLetterOnly(String text) {
+    if (text == null || text.isEmpty) {
+      return text;
+    }
+
+    // Ambil huruf pertama dan ubah menjadi huruf besar
+    String firstLetter = text[0].toUpperCase();
+
+    // Ambil sisa teks dan ubah menjadi huruf kecil
+    String restOfText = text.substring(1).toLowerCase();
+
+    // Gabungkan kembali huruf pertama besar dengan sisa teks yang kecil
+    return '$firstLetter$restOfText';
+  }
 
   //function untuk absen
 
@@ -244,127 +263,127 @@ class _homeGAPageState extends State<homeGAPage> {
     );
   }
 
-  void showTolakApproval(BuildContext context, String idDriver, String tanggal) {
-    final screenSize = MediaQuery.of(context).size;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-            builder: (context, setState) {
-              return SingleChildScrollView(
-                child: Container(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
-                  ),
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Alasan',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                Spacer(),
-                                IconButton(
-                                  icon: Icon(Icons.close),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                            ),
-                            Text(
-                              'Informasikan alasan',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w300,
-                                fontSize: 16,
-                              ),
-                            ),
-                            MyCustomTextField(controller: alasanText, hintText: 'Alasan', buttonColor: Colors.white,),
-                            SizedBox(height: 15,),
-                            Row(
-                              children: [
-                                Container(
-                                  height: 50,
-                                  child: CustomButton(
-                                    onPressed: (){
-                                      Get.back();
-                                    },
-                                    width: 100,
-                                    height: 100,
-                                    text: 'Batal',
-                                    radius: 10,
-                                    cekSpacer: false,
-                                    textColor: Colors.red,
-                                    buttonColor: Colors.white,
-                                    borderColor: Colors.transparent,
-                                  ),
-                                ),
-                                SizedBox(width: 10,),
-                                Expanded(
-                                  child:  Container(
-                                    height: 50,
-                                    child: CustomButton(
-                                      onPressed: (){
-                                        for (var item in detailBbsenData) {
-                                          absenID.add(item['absen_id']);
-                                        }
-                                        for (var item in detailRencanaRute){
-                                          ruterID.add(item['rute_id']);
-                                        }
-                                        runMutationFunctionApprove(absenId: absenID, keterangan: alasanText.text, driverId: idDriver, approve: false, ruteID: ruterID, tanggal: tanggal);
-                                        fetchData1();
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return RoundPopup();
-                                          },
-                                        );
-                                        Future.delayed(Duration(seconds: 3), () {
-                                          Get.back();
-                                        });
-                                        ruterID = [];
-                                        absenID = [];
-                                        alasanText.text = '';
-                                        Get.back();
-                                        Get.back();
-                                      },
-                                      width: 100,
-                                      height: 100,
-                                      text: 'Kirim',
-                                      radius: 10,
-                                      cekSpacer: false,
-                                      textColor: Colors.white,
-                                      buttonColor: Color.fromRGBO(14, 137, 145, 1),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-        );
-      },
-    );
-  }
+  // void showTolakApproval(BuildContext context, String idDriver, String tanggal) {
+  //   final screenSize = MediaQuery.of(context).size;
+  //
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     builder: (BuildContext context) {
+  //       return StatefulBuilder(
+  //           builder: (context, setState) {
+  //             return SingleChildScrollView(
+  //               child: Container(
+  //                 padding: EdgeInsets.only(
+  //                   bottom: MediaQuery.of(context).viewInsets.bottom,
+  //                 ),
+  //                 child: ListView(
+  //                   shrinkWrap: true,
+  //                   children: <Widget>[
+  //                     Container(
+  //                       padding: EdgeInsets.all(16.0),
+  //                       child: Column(
+  //                         mainAxisSize: MainAxisSize.max,
+  //                         crossAxisAlignment: CrossAxisAlignment.stretch,
+  //                         children: [
+  //                           Row(
+  //                             children: [
+  //                               Text(
+  //                                 'Alasan',
+  //                                 style: TextStyle(
+  //                                   fontWeight: FontWeight.w600,
+  //                                   fontSize: 16,
+  //                                 ),
+  //                               ),
+  //                               Spacer(),
+  //                               IconButton(
+  //                                 icon: Icon(Icons.close),
+  //                                 onPressed: () {
+  //                                   Navigator.pop(context);
+  //                                 },
+  //                               ),
+  //                             ],
+  //                           ),
+  //                           Text(
+  //                             'Informasikan alasan',
+  //                             style: TextStyle(
+  //                               fontWeight: FontWeight.w300,
+  //                               fontSize: 16,
+  //                             ),
+  //                           ),
+  //                           MyCustomTextField(controller: alasanText, hintText: 'Alasan', buttonColor: Colors.white,),
+  //                           SizedBox(height: 15,),
+  //                           Row(
+  //                             children: [
+  //                               Container(
+  //                                 height: 50,
+  //                                 child: CustomButton(
+  //                                   onPressed: (){
+  //                                     Get.back();
+  //                                   },
+  //                                   width: 100,
+  //                                   height: 100,
+  //                                   text: 'Batal',
+  //                                   radius: 10,
+  //                                   cekSpacer: false,
+  //                                   textColor: Colors.red,
+  //                                   buttonColor: Colors.white,
+  //                                   borderColor: Colors.transparent,
+  //                                 ),
+  //                               ),
+  //                               SizedBox(width: 10,),
+  //                               Expanded(
+  //                                 child:  Container(
+  //                                   height: 50,
+  //                                   child: CustomButton(
+  //                                     onPressed: (){
+  //                                       for (var item in detailBbsenData) {
+  //                                         absenID.add(item['absen_id']);
+  //                                       }
+  //                                       for (var item in detailRencanaRute){
+  //                                         ruterID.add(item['rute_id']);
+  //                                       }
+  //                                       runMutationFunctionApprove(absenId: absenID, keterangan: alasanText.text, driverId: idDriver, approve: false, ruteID: ruterID, tanggal: tanggal);
+  //                                       fetchData1();
+  //                                       showDialog(
+  //                                         context: context,
+  //                                         builder: (BuildContext context) {
+  //                                           return RoundPopup();
+  //                                         },
+  //                                       );
+  //                                       Future.delayed(Duration(seconds: 3), () {
+  //                                         Get.back();
+  //                                       });
+  //                                       ruterID = [];
+  //                                       absenID = [];
+  //                                       alasanText.text = '';
+  //                                       Get.back();
+  //                                       Get.back();
+  //                                     },
+  //                                     width: 100,
+  //                                     height: 100,
+  //                                     text: 'Kirim',
+  //                                     radius: 10,
+  //                                     cekSpacer: false,
+  //                                     textColor: Colors.white,
+  //                                     buttonColor: Color.fromRGBO(14, 137, 145, 1),
+  //                                   ),
+  //                                 ),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             );
+  //           }
+  //       );
+  //     },
+  //   );
+  // }
   // ini function untuk memilih waktu
   Future<void> _selectTime(BuildContext context) async {
     // Dapatkan waktu saat ini
@@ -434,65 +453,70 @@ class _homeGAPageState extends State<homeGAPage> {
                   if (cekKosong == true)
                     Column(
                       children: [
-                        if (namaOwner != '')
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                              color: Color.fromRGBO(218, 218, 218, 1),
-                              border: Border.all(
-                                color: Colors.black, // Warna border yang diinginkan
-                                width: 1.0, // Ketebalan border
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text('Ditugaskan ke',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.arrow_right_sharp),
-                                          Text(namaOwner ?? '',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-
-                                  Spacer(),
-
-                                  if (cekApprove == true)
-                                    Icon(
-                                      Icons.check,
-                                      color: Colors.green,
-                                    )
-                                  else
-                                    Icon(
-                                      Icons.close,
-                                      color: Colors.red,
+                        if (detailJadwalKerja.isNotEmpty)
+                          for(var item in detailJadwalKerja)
+                            Column(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                    color: Color.fromRGBO(218, 218, 218, 1),
+                                    border: Border.all(
+                                      color: Colors.black, // Warna border yang diinginkan
+                                      width: 1.0, // Ketebalan border
                                     ),
-                                ],
-                              ),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text('Ditugaskan ke',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.arrow_right_sharp),
+                                                Text(item['owner']['displayName'] ?? '',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+
+                                        Spacer(),
+
+                                        if (cekApprove == true)
+                                          Icon(
+                                            Icons.check,
+                                            color: Colors.green,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.close,
+                                            color: Colors.red,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 15,)
+                              ],
                             ),
-                          ),
-                        SizedBox(height: 15,),
                         if (detailBbsenData.isNotEmpty)
                           for(var item in detailBbsenData)
                             Column(
@@ -531,7 +555,7 @@ class _homeGAPageState extends State<homeGAPage> {
                                           Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Text('Absensi ${item['jenis']}',
+                                              Text('Absensi ${item['jenis'] == 'KELUAR' ? 'Pulang Lebih Awal' : capitalizeFirstLetterOnly(item['jenis'])}',
                                                 style: TextStyle(
                                                   fontSize: 16,
                                                 ),
@@ -548,7 +572,7 @@ class _homeGAPageState extends State<homeGAPage> {
                                                     Row(
                                                       children: [
                                                         Icon(Icons.arrow_right),
-                                                        Text('Kampus A')
+                                                        Text(item['keterangan'] ?? '')
                                                       ],
                                                     )
                                                 ],
@@ -573,7 +597,14 @@ class _homeGAPageState extends State<homeGAPage> {
                                                     ],
                                                   )
                                                 ],
-                                              )
+                                              ),
+                                              if(item['jenis' ]== 'SAKIT')
+                                                TextButton(
+                                                    onPressed: (){
+                                                      print(item['files']);
+                                                      Get.back();
+                                                      getPresignedUrl('${item['files']}');
+                                                    }, child: Text('Open Image'))
                                             ],
                                           ),
 
@@ -645,7 +676,7 @@ class _homeGAPageState extends State<homeGAPage> {
                                                   Row(
                                                     children: [
                                                       Icon(Icons.arrow_right),
-                                                      Text(item['keterangan'])
+                                                      Text(item['keterangan'] ?? '')
                                                     ],
                                                   )
                                                 ],
@@ -757,67 +788,67 @@ class _homeGAPageState extends State<homeGAPage> {
                         Text('Tidak ada kegiatan absensi terekam')
                       ],
                     ),
-                  if (cekApprove == false && cekKosong == true)
-                    Row(
-                      children: [
-                        if(detailApprove.isEmpty)
-                          Expanded(
-                          child:  Container(
-                            height: 50,
-                            child: CustomButton(
-                              onPressed: (){
-                                for (var item in detailBbsenData) {
-                                  absenID.add(item['absen_id']);
-                                }
-                                for (var item in detailRencanaRute){
-                                  ruterID.add(item['rute_id']);
-                                }
-                                runMutationFunctionApprove(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal);
-                                fetchData1();
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return RoundPopup();
-                                  },
-                                );
-                                Future.delayed(Duration(seconds: 3), () {
-                                  Get.back();
-                                  Get.back();
-                                });
-                                ruterID = [];
-                                absenID = [];
-                                // print(item['absen_id']);
-                              },
-                              width: 100,
-                              height: 100,
-                              text: 'Approverd',
-                              radius: 10,
-                              cekSpacer: false,
-                              textColor: Colors.white,
-                              buttonColor: Color.fromRGBO(14, 137, 145, 1),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10,),
-                        if(detailApprove.isEmpty)
-                         Container(
-                          height: 50,
-                          child: CustomButton(
-                            onPressed: (){
-                              showTolakApproval(context, driverId, tanggal);
-                            },
-                            width: 100,
-                            height: 100,
-                            text: 'Tolak',
-                            radius: 10,
-                            cekSpacer: false,
-                            textColor: Color.fromRGBO(14, 137, 145, 1),
-                            buttonColor: Colors.white,
-                            borderColor: Color.fromRGBO(14, 137, 145, 1),
-                          ),
-                        )
-                      ],
-                    ),
+                  // if (cekApprove == false && cekKosong == true)
+                  //   Row(
+                  //     children: [
+                  //       if(detailApprove.isEmpty)
+                  //         Expanded(
+                  //         child:  Container(
+                  //           height: 50,
+                  //           child: CustomButton(
+                  //             onPressed: (){
+                  //               for (var item in detailBbsenData) {
+                  //                 absenID.add(item['absen_id']);
+                  //               }
+                  //               for (var item in detailRencanaRute){
+                  //                 ruterID.add(item['rute_id']);
+                  //               }
+                  //               runMutationFunctionApprove(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal);
+                  //               fetchData1();
+                  //               showDialog(
+                  //                 context: context,
+                  //                 builder: (BuildContext context) {
+                  //                   return RoundPopup();
+                  //                 },
+                  //               );
+                  //               Future.delayed(Duration(seconds: 3), () {
+                  //                 Get.back();
+                  //                 Get.back();
+                  //               });
+                  //               ruterID = [];
+                  //               absenID = [];
+                  //               // print(item['absen_id']);
+                  //             },
+                  //             width: 100,
+                  //             height: 100,
+                  //             text: 'Approverd',
+                  //             radius: 10,
+                  //             cekSpacer: false,
+                  //             textColor: Colors.white,
+                  //             buttonColor: Color.fromRGBO(14, 137, 145, 1),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //       SizedBox(width: 10,),
+                  //       if(detailApprove.isEmpty)
+                  //        Container(
+                  //         height: 50,
+                  //         child: CustomButton(
+                  //           onPressed: (){
+                  //             showTolakApproval(context, driverId, tanggal);
+                  //           },
+                  //           width: 100,
+                  //           height: 100,
+                  //           text: 'Tolak',
+                  //           radius: 10,
+                  //           cekSpacer: false,
+                  //           textColor: Color.fromRGBO(14, 137, 145, 1),
+                  //           buttonColor: Colors.white,
+                  //           borderColor: Color.fromRGBO(14, 137, 145, 1),
+                  //         ),
+                  //       )
+                  //     ],
+                  //   ),
                   if (cekApprove == true)
                     Text('Laporan telah di Approve pada ${detailApprove[0]['tanggal']}',
                       style: TextStyle(
@@ -873,44 +904,44 @@ class _homeGAPageState extends State<homeGAPage> {
     }
   }
 
-  void runMutationFunctionApprove({
-    required List<int> absenId,
-    required String keterangan,
-    required String driverId,
-    required bool approve,
-    required List<int> ruteID,
-    required String tanggal,
-  }) async {
-    final HttpLink httpLink = HttpLink(
-      'http://45.64.3.54:40380/absendriver-api/v1/graphql',
-      defaultHeaders: {
-        'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
-      },
-    );
-
-    final GraphQLClient client = GraphQLClient(
-      link: httpLink,
-      cache: GraphQLCache(),
-    );
-
-    final MutationOptions options = MutationOptions(
-      document: gql('''
-        mutation MyMutation {
-  insert_approval_one(object: {absen_ids: $absenID, approve: $approve, driver_id: "$driverId", reject_reason: "$keterangan", rute_ids: $ruteID, tanggal: "$tanggal"}) {
-    id
-  }
-}
-    '''),
-    );
-
-    final QueryResult result = await client.mutate(options);
-
-    if (result.hasException) {
-      print('Mutation error: ${result.exception.toString()}');
-    } else {
-      print('Mutation successful: ${result.data}');
-    }
-  }
+//   void runMutationFunctionApprove({
+//     required List<int> absenId,
+//     required String keterangan,
+//     required String driverId,
+//     required bool approve,
+//     required List<int> ruteID,
+//     required String tanggal,
+//   }) async {
+//     final HttpLink httpLink = HttpLink(
+//       'http://45.64.3.54:40380/absendriver-api/v1/graphql',
+//       defaultHeaders: {
+//         'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
+//       },
+//     );
+//
+//     final GraphQLClient client = GraphQLClient(
+//       link: httpLink,
+//       cache: GraphQLCache(),
+//     );
+//
+//     final MutationOptions options = MutationOptions(
+//       document: gql('''
+//         mutation MyMutation {
+//   insert_approval_one(object: {absen_ids: $absenID, approve: $approve, driver_id: "$driverId", reject_reason: "$keterangan", rute_ids: $ruteID, tanggal: "$tanggal"}) {
+//     id
+//   }
+// }
+//     '''),
+//     );
+//
+//     final QueryResult result = await client.mutate(options);
+//
+//     if (result.hasException) {
+//       print('Mutation error: ${result.exception.toString()}');
+//     } else {
+//       print('Mutation successful: ${result.data}');
+//     }
+//   }
 
 //   Future<void> fetchData() async {
 //     final GraphQLClient client = GraphQLClient(
@@ -1054,6 +1085,8 @@ class _homeGAPageState extends State<homeGAPage> {
     jam
     jenis
     tanggal
+    keterangan
+    files
     user_id
     longitude
     latitude
@@ -1074,6 +1107,13 @@ class _homeGAPageState extends State<homeGAPage> {
     reject_reason
     tanggal
   }
+  jadwal_driver(where: {tanggal: {_eq: "$tanggal"}, _and: {driver_id: {_eq: "$idDriver"}}}) {
+    tanggal
+    owner {
+      displayName
+      id
+    }
+  }
 }
 
 
@@ -1087,6 +1127,7 @@ class _homeGAPageState extends State<homeGAPage> {
       detailBbsenData = List<Map<String, dynamic>>.from(result.data?['absen'] ?? []);
       detailRencanaRute = List<Map<String, dynamic>>.from(result.data?['rencana_rute'] ?? []);
       detailApprove = List<Map<String, dynamic>>.from(result.data?['approval'] ?? []);
+      detailJadwalKerja = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
       // Hasilnya adalah groupedData yang berisi data yang sudah dikelompokkan berdasarkan tanggal
       for (var item in detailBbsenData){
         print(item['id']);
@@ -1105,6 +1146,44 @@ class _homeGAPageState extends State<homeGAPage> {
   Future<void> refreshData() async {
     // Tambahkan logika pembaruan data di sini
     await fetchData1();
+  }
+
+  void openLinkInBrowser(String url) async {
+    try {
+      await launch('$url');
+    } catch (e) {
+      print('Tidak dapat membuka tautan di browser: $e');
+    }
+  }
+
+  Future<String?> getPresignedUrl(String fileId) async {
+    final apiUrl = 'http://45.64.3.54:40380/absendriver-api/v1/storage/files/$fileId/presignedurl';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl),
+        headers: {'Authorization': 'Bearer ${widget.tokenDriver}'},
+      );
+
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final String presignedUrl = responseData['url'];
+        print(responseData['url']);
+        openLinkInBrowser(responseData['url']);
+        return presignedUrl;
+      } else {
+        print('Failed to get presigned URL. Status code: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Foto tidak ada'),
+            ));
+        return null;
+      }
+    } catch (error) {
+      print('Error getting presigned URL: $error');
+      return null;
+    }
   }
 
   @override
@@ -1208,7 +1287,7 @@ class _homeGAPageState extends State<homeGAPage> {
                               onTap: () async {
                                 await fetchDataDetail(item['tanggal'], item['driver']['id']);
 
-                                showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '');
+                                showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '');
 
                               },
                               child: Column(
@@ -1264,11 +1343,16 @@ class _homeGAPageState extends State<homeGAPage> {
                                                     ),
                                                   ),
                                                   if (item['ownerData'] != null)
-                                                    Text(
-                                                      item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '',
-                                                      style: TextStyle(
-                                                        fontSize: 13,
-                                                      ),
+                                                    Row(
+                                                      children: [
+                                                        Icon(Icons.arrow_right_alt_rounded),
+                                                        Text(
+                                                          item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '',
+                                                          style: TextStyle(
+                                                            fontSize: 13,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   if (item['has_absen'] == false)
                                                     Text('Tidak ada aktifitas terekam',
@@ -1296,24 +1380,24 @@ class _homeGAPageState extends State<homeGAPage> {
                                             ],
                                           ),
                                           SizedBox(height: 10,),
-                                          if (item['has_absen'] == true
-                                              && item['tanggal'] == DateFormat('yyyy-MM-dd').format(DateTime.now())
-                                          )
-                                            Container(
-                                              height: 40,
-                                              child: CustomButton(
-                                                onPressed: (){
-                                                  showRencanaRuterModal(context, item['driver']['id']);
-                                                },
-                                                width: 100,
-                                                height: 100,
-                                                text: 'Request Jemput',
-                                                radius: 10,
-                                                cekSpacer: false,
-                                                textColor: Colors.white,
-                                                buttonColor: Color.fromRGBO(14, 137, 145, 1),
-                                              ),
-                                            ),
+                                          // if (item['has_absen'] == true
+                                          //     && item['tanggal'] == DateFormat('yyyy-MM-dd').format(DateTime.now())
+                                          // )
+                                          //   Container(
+                                          //     height: 40,
+                                          //     child: CustomButton(
+                                          //       onPressed: (){
+                                          //         showRencanaRuterModal(context, item['driver']['id']);
+                                          //       },
+                                          //       width: 100,
+                                          //       height: 100,
+                                          //       text: 'Request Jemput',
+                                          //       radius: 10,
+                                          //       cekSpacer: false,
+                                          //       textColor: Colors.white,
+                                          //       buttonColor: Color.fromRGBO(14, 137, 145, 1),
+                                          //     ),
+                                          //   ),
                                         ],
                                       ),
                                     ),

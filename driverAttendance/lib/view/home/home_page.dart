@@ -21,13 +21,18 @@ import 'package:maps_launcher/maps_launcher.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_web_browser/flutter_web_browser.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 
 class homePage extends StatefulWidget {
 
   final Function(int) navigateToJanjiTamu;
   String tokenDriver;
   String nameDriver;
-  String idDriver;
+  String idDriver;// Tambahkan ini
 
   homePage({
     required this.tokenDriver,
@@ -46,6 +51,20 @@ class _homePageState extends State<homePage> {
   late String formattedDate;
   late String currentTime;
   late String realTime;
+  String capitalizeFirstLetterOnly(String text) {
+    if (text == null || text.isEmpty) {
+      return text;
+    }
+
+    // Ambil huruf pertama dan ubah menjadi huruf besar
+    String firstLetter = text[0].toUpperCase();
+
+    // Ambil sisa teks dan ubah menjadi huruf kecil
+    String restOfText = text.substring(1).toLowerCase();
+
+    // Gabungkan kembali huruf pertama besar dengan sisa teks yang kecil
+    return '$firstLetter$restOfText';
+  }
 
   // ini untuk text field modal rencana rute
   late RxString waktuMasuk = "10:00".obs;
@@ -54,18 +73,21 @@ class _homePageState extends State<homePage> {
   final Map<String, List<Map<String, dynamic>>> groupedData = {};
   List<Map<String, dynamic>> absenData = [];
   List<Map<String, dynamic>> detailBbsenData = [];
+  List<Map<String, dynamic>> detailJadwalKerja = [];
   List<Map<String, dynamic>> detailRencanaRute = [];
   List<Map<String, dynamic>> detailApprove = [];
   List<Map<String, dynamic>> absensi = [];
   double PositionLatitude = 0;
   double PositionLongitude = 0;
   bool absen = false;
+  String idImage = '';
 
   //function untuk absen
 
   @override
   void initState() {
     super.initState();
+    requestLocationPermission();
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("Foreground message received: $message");
 
@@ -105,6 +127,18 @@ class _homePageState extends State<homePage> {
     print('ini token ${widget.tokenDriver}');
     updateTime();
     fetchData1();
+  }
+
+  Future<void> requestLocationPermission() async {
+    var status = await Permission.location.request();
+
+    if (status == PermissionStatus.granted) {
+      // Izin lokasi diberikan, lanjutkan dengan operasi lokasi
+      _getLocation();
+    } else {
+      // Izin ditolak, Anda bisa memberikan feedback atau memberikan tindakan tambahan
+      // seperti menampilkan pesan bahwa lokasi tidak akan dapat diakses tanpa izin
+    }
   }
 
   void updateTime() {
@@ -415,7 +449,7 @@ class _homePageState extends State<homePage> {
                       if (absenData[0]['has_absen'] == false || absensi.isNotEmpty)
                         InkWell(
                           onTap: () async {
-                            await fetchAbsensi(DateFormat('yyyy-MM-dd').format(DateTime.now()), 'Izin Sakit');
+                            await fetchAbsensi(DateFormat('yyyy-MM-dd').format(DateTime.now()), 'SAKIT');
                             _getLocation();
                             _showPopupKonfirmasiIjinSakit(context, PositionLatitude, PositionLongitude);
                           },
@@ -506,7 +540,7 @@ class _homePageState extends State<homePage> {
                       if (absenData[0]['has_absen'] == true && absensi.isEmpty)
                         InkWell(
                           onTap: () async {
-                            await fetchAbsensi(DateFormat('yyyy-MM-dd').format(DateTime.now()), 'PULANG');
+                            await fetchAbsensi(DateFormat('yyyy-MM-dd').format(DateTime.now()), 'KELUAR');
                             await _getLocation();
                             _showPopupKonfirmasiIjinPulang(context, PositionLatitude, PositionLongitude);
                           },
@@ -616,38 +650,68 @@ class _homePageState extends State<homePage> {
                           height: 50,
                           child: CustomButton(
                             onPressed: (){
+                              // if (absensi.isEmpty && absen == true) {
+                              //   // runMutationFunction(
+                              //   //     jam: realTime,
+                              //   //     tanggal: formattedDate,
+                              //   //     jenis: "DATANG",
+                              //   //     keterangan: "",
+                              //   //     imagesId: ""
+                              //   // );
+                              // }
                               if (absensi.isEmpty && absen == true) {
-                                runMutationFunction(
-                                    jam: realTime,
-                                    tanggal: formattedDate,
-                                    jenis: "DATANG",
-                                    keterangan: ""
-                                );
-                              }
-                              if (absensi.isEmpty && absen == true) {
-                                setState(() {
-                                  // Lakukan sesuatu setelah setState selesai
-                                  fetchData1();
-                                  // Update UI atau lakukan aksi lainnya jika diperlukan
+                                fetchAbsensi(DateFormat('yyyy-MM-dd').format(DateTime.now()), 'SAKIT').then((value){
+                                  if(absensi.isEmpty) {
+                                    runMutationFunction(
+                                        jam: realTime,
+                                        tanggal: formattedDate,
+                                        jenis: "DATANG",
+                                        keterangan: "",
+                                        imagesId: ""
+                                    );
+                                    setState(() {
+                                      // Lakukan sesuatu setelah setState selesai
+                                      fetchData1();
+                                      // Update UI atau lakukan aksi lainnya jika diperlukan
+                                    });
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return RoundPopup();
+                                      },
+                                    );
+                                    setState(() {
+                                      // Lakukan sesuatu setelah setState selesai
+                                      fetchData1();
+                                      // Update UI atau lakukan aksi lainnya jika diperlukan
+                                    });
+                                    Future.delayed(Duration(seconds: 1), () {
+                                      Navigator.pop(context);
+                                      Navigator.pop(context);
+                                      Navigator.pop(context);
+                                    });
+                                  }else{
+                                    print('sakit');
+                                    Get.back();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Anda sudah melakukan absen Sakit hari ini'),
+                                        ));
+                                  }
                                 });
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return RoundPopup();
-                                  },
-                                );
                               }
-                              if (absensi.isEmpty && absen == true)
-                                Future.delayed(Duration(seconds: 1), () {
-                                  Navigator.pop(context);
-                                  Navigator.pop(context);
-                                  Navigator.pop(context);
-                                });
-                              if (absensi.isNotEmpty)
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                  content: Text('Anda sudah melakukan absen datang hari ini'),
-                                ));
+                              if (absensi.isNotEmpty) {
+                                Navigator.pop(context);
+                                Get.back();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'Anda sudah melakukan absen datang hari ini'),
+                                    ));
+                              }
                               if (absen == false && absensi.isEmpty) {
+                                absen = false;
                                 Get.back();
                                 Get.back();
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -656,11 +720,11 @@ class _homePageState extends State<homePage> {
                                           'Anda Tidak berada dikantor'),
                                     ));
                               }
-                              absen = false;
-                              if (absensi.isNotEmpty) {
-                                Navigator.pop(context);
-                                Get.back();
-                              }
+                              setState(() {
+                                // Lakukan sesuatu setelah setState selesai
+                                fetchData1();
+                                // Update UI atau lakukan aksi lainnya jika diperlukan
+                              });
                             },
                             width: 100,
                             height: 100,
@@ -683,6 +747,7 @@ class _homePageState extends State<homePage> {
   }
   void _showPopupKonfirmasiIjinSakit(BuildContext context, double PositionLatitude, double PositionLongitude) {
     final TextEditingController alasanText = TextEditingController();
+    RxBool cekKosong = true.obs;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -701,10 +766,29 @@ class _homePageState extends State<homePage> {
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w300
+                  ),
                 ),
               ),
+              content:  Container(
+                height: 140,
+                child:  Column(children: [
+                  MyCustomTextField(controller: alasanText, hintText: 'Alasan', buttonColor: Colors.white,),
+                  Obx(() {
+                    if (cekKosong.value == false) {
+                      return Text(
+                        'Alasan Harus Diisi *',
+                        style: TextStyle(color: Colors.red),
+                      );
+                    } else {
+                      return SizedBox.shrink();
+                    }
+                  }),
+                  TextButton(
+                      onPressed: (){
+                        _takePictureAndUpload('');
+                      }, child: Text('Upload Image'))
+                ],),
               ),
-              content: MyCustomTextField(controller: alasanText, hintText: 'Alasan', buttonColor: Colors.white,),
               actions: [
                 Row(
                   children: [
@@ -730,38 +814,59 @@ class _homePageState extends State<homePage> {
                         height: 50,
                         child: CustomButton(
                           onPressed: (){
-                            if (absensi.isEmpty) {
+                            if (alasanText.text.isEmpty){
+                              cekKosong.value = false;
+                            }else{
+                              cekKosong.value = true;
+                            }
+                            if (absensi.isEmpty && alasanText.text != '') {
                               runMutationFunction(
                                   jam: realTime,
                                   tanggal: formattedDate,
                                   jenis: "SAKIT",
-                                  keterangan: alasanText.text
+                                  keterangan: alasanText.text,
+                                  imagesId: idImage
                               );
                               setState(() {
                                 fetchData1();
                               });
-                            }
-                            if (absensi.isEmpty)
+                              setState(() {
+                                // Lakukan sesuatu setelah setState selesai
+                                fetchData1();
+                                // Update UI atau lakukan aksi lainnya jika diperlukan
+                              });
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return RoundPopup();
                                 },
                               );
-                            if (absensi.isEmpty)
+                              setState(() {
+                                // Lakukan sesuatu setelah setState selesai
+                                fetchData1();
+                                // Update UI atau lakukan aksi lainnya jika diperlukan
+                              });
                               Future.delayed(Duration(seconds: 1), () {
                                 Navigator.pop(context);
                                 Navigator.pop(context);
                                 Navigator.pop(context);
                               });
-                            if (absensi.isNotEmpty)
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text('Anda sudah melakukan ijin sakit hari ini'),
-                              ));
+                            }
                             if (absensi.isNotEmpty) {
-                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        'Anda sudah melakukan ijin sakit hari ini'),
+                                  )
+                              );
+                              Get.back();
                               Get.back();
                             }
+                            setState(() {
+                              // Lakukan sesuatu setelah setState selesai
+                              fetchData1();
+                              // Update UI atau lakukan aksi lainnya jika diperlukan
+                            });
                           },
                           width: 100,
                           height: 100,
@@ -841,36 +946,56 @@ class _homePageState extends State<homePage> {
                           child: CustomButton(
                             onPressed: (){
                               if (absensi.isEmpty && absen == true){
-                                runMutationFunction(
-                                    jam: realTime,
-                                    tanggal: formattedDate,
-                                    jenis: "PULANG",
-                                    keterangan: ""
-                                );
-                                setState(() {
-                                  fetchData1();
+                                fetchAbsensi(DateFormat('yyyy-MM-dd').format(DateTime.now()), 'KELUAR').then((value){
+                                  if(absensi.isEmpty){
+                                  runMutationFunction(
+                                      jam: realTime,
+                                      tanggal: formattedDate,
+                                      jenis: "PULANG",
+                                      keterangan: "",
+                                      imagesId: ""
+                                  );
+                                  setState(() {
+                                    fetchData1();
+                                  });
+                                  setState(() {
+                                    // Lakukan sesuatu setelah setState selesai
+                                    fetchData1();
+                                    // Update UI atau lakukan aksi lainnya jika diperlukan
+                                  });
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return RoundPopup();
+                                    },
+                                  );
+                                  setState(() {
+                                    // Lakukan sesuatu setelah setState selesai
+                                    fetchData1();
+                                    // Update UI atau lakukan aksi lainnya jika diperlukan
+                                  });
+                                  Future.delayed(Duration(seconds: 1), () {
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
+                                  });
+                                }else{
+                                    Get.back();
+                                    Get.back();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Anda Sudah Melakukan Ijin Pulang'),
+                                        ));
+                                  }
                                 });
                               }
-                              if (absensi.isEmpty && absen == true)
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return RoundPopup();
-                                  },
-                                );
-                              if (absensi.isEmpty && absen == true)
-                                Future.delayed(Duration(seconds: 1), () {
-                                  Navigator.pop(context);
-                                  Navigator.pop(context);
-                                  Navigator.pop(context);
-                                });
-                              if (absensi.isNotEmpty)
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                  content: Text('Anda sudah melakukan absen datang hari ini'),
-                                ));
                               if (absensi.isNotEmpty) {
                                 Navigator.pop(context);
                                 Get.back();
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                  content: Text('Anda sudah melakukan absen pulang hari ini'),
+                                ));
                               }
                               if (absen == false && absensi.isEmpty) {
                                 Get.back();
@@ -881,6 +1006,11 @@ class _homePageState extends State<homePage> {
                                           'Anda Tidak berada dikantor'),
                                     ));
                               }
+                              setState(() {
+                                // Lakukan sesuatu setelah setState selesai
+                                fetchData1();
+                                // Update UI atau lakukan aksi lainnya jika diperlukan
+                              });
                             },
                             width: 100,
                             height: 100,
@@ -903,6 +1033,7 @@ class _homePageState extends State<homePage> {
   }
   void _showPopupKonfirmasiIjinPulang(BuildContext context, double PositionLatitude, double PositionLongitude) {
     final TextEditingController alasanText = TextEditingController();
+    RxBool cekKosong = true.obs;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -917,14 +1048,31 @@ class _homePageState extends State<homePage> {
             });
 
             return AlertDialog(
-              title: Center(child: Text('Kamu akan melakukan Pulang awalt',
+              title: Center(child: Text('Kamu akan melakukan Pulang awal',
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w300
                 ),
               ),
               ),
-              content: MyCustomTextField(controller: alasanText, hintText: 'Alasan', buttonColor: Colors.white,),
+              content: Container(
+                height: 120,
+                child: Column(
+                  children: [
+                    MyCustomTextField(controller: alasanText, hintText: 'Alasan', buttonColor: Colors.white,),
+                    Obx(() {
+                      if (cekKosong.value == false) {
+                        return Text(
+                          'Alasan Harus Diisi *',
+                          style: TextStyle(color: Colors.red),
+                        );
+                      } else {
+                        return SizedBox.shrink();
+                      }
+                    }),
+                  ],
+                ),
+              ),
               actions: [
                 Row(
                   children: [
@@ -950,35 +1098,38 @@ class _homePageState extends State<homePage> {
                         height: 50,
                         child: CustomButton(
                           onPressed: (){
-                            if (absensi.isEmpty) {
+                            if(alasanText.text == ''){
+                              cekKosong.value = false;
+                            }else{
+                              cekKosong.value = true;
+                            }
+                            if (absensi.isEmpty && alasanText.text != '') {
                               runMutationFunction(
                                   jam: realTime,
                                   tanggal: formattedDate,
                                   jenis: "KELUAR",
-                                  keterangan: alasanText.text
+                                  keterangan: alasanText.text,
+                                 imagesId: ""
                               );
                               setState(() {
                                 fetchData1();
                               });
-                            }
-                            if (absensi.isEmpty)
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return RoundPopup();
                                 },
                               );
-                            if (absensi.isEmpty)
                               Future.delayed(Duration(seconds: 1), () {
                                 Navigator.pop(context);
                                 Navigator.pop(context);
                                 Navigator.pop(context);
                               });
-                            if (absensi.isNotEmpty)
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text('Anda sudah melakukan ijin sakit hari ini'),
-                              ));
+                            }
                             if (absensi.isNotEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('Anda sudah melakukan ijin pulang hari ini'),
+                              ));
                               Navigator.pop(context);
                               Get.back();
                             }
@@ -1095,65 +1246,70 @@ class _homePageState extends State<homePage> {
                   if (cekKosong == true)
                     Column(
                       children: [
-                        if (namaOwner != '')
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                              color: Color.fromRGBO(218, 218, 218, 1),
-                              border: Border.all(
-                                color: Colors.black, // Warna border yang diinginkan
-                                width: 1.0, // Ketebalan border
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                        for(var item in detailJadwalKerja)
+                          Column(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                  color: Color.fromRGBO(218, 218, 218, 1),
+                                  border: Border.all(
+                                    color: Colors.black, // Warna border yang diinginkan
+                                    width: 1.0, // Ketebalan border
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
-                                      Row(
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text('Ditugaskan ke',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
+                                          Row(
+                                            children: [
+                                              Text('Ditugaskan ke',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold
+                                                ),
+                                              ),
+                                            ],
                                           ),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.arrow_right_sharp),
+                                              Text(item['owner']['displayName'] ?? '',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold
+                                                ),
+                                              ),
+                                            ],
+                                          )
                                         ],
                                       ),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.arrow_right_sharp),
-                                          Text(namaOwner ?? '',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                        ],
-                                      )
+
+                                      Spacer(),
+
+                                      if (detailApprove[0]['has_approve'] == true)
+                                        Icon(
+                                          Icons.check,
+                                          color: Colors.green,
+                                        )
+                                      else
+                                        Icon(
+                                          Icons.close,
+                                          color: Colors.red,
+                                        ),
                                     ],
                                   ),
-
-                                  Spacer(),
-
-                                  if (detailApprove[0]['has_approve'] == true)
-                                    Icon(
-                                      Icons.check,
-                                      color: Colors.green,
-                                    )
-                                  else
-                                    Icon(
-                                      Icons.close,
-                                      color: Colors.red,
-                                    ),
-                                ],
+                                ),
                               ),
-                            ),
+                              SizedBox(height: 15,)
+                            ],
                           ),
-                        SizedBox(height: 15,),
+                        // SizedBox(height: 15,),
                         for(var item in detailBbsenData)
                           Column(
                             children: [
@@ -1189,7 +1345,7 @@ class _homePageState extends State<homePage> {
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text('Absensi ${item['jenis']}',
+                                          Text('Absensi ${item['jenis'] == 'KELUAR' ? 'Pulang Lebih Awal' : capitalizeFirstLetterOnly(item['jenis'])}',
                                             style: TextStyle(
                                               fontSize: 16,
                                             ),
@@ -1206,7 +1362,7 @@ class _homePageState extends State<homePage> {
                                                 Row(
                                                   children: [
                                                     Icon(Icons.arrow_right),
-                                                    Text('Tidak Masuk Kerja')
+                                                    Text(item['keterangan'] ?? '')
                                                   ],
                                                 )
                                             ],
@@ -1233,10 +1389,20 @@ class _homePageState extends State<homePage> {
                                             ],
                                           ),
                                           if(item['jenis'] == "SAKIT")
-                                           TextButton(
-                                              onPressed: (){
-                                                _takePictureAndUpload(item['id'].toString());
-                                              }, child: Text('Upload Image'))
+                                           Row(
+                                             children: [
+                                               TextButton(
+                                                   onPressed: (){
+                                                     _takePictureAndUpload(item['id'].toString());
+                                                   }, child: Text('Upload Image')),
+                                               TextButton(
+                                                   onPressed: (){
+                                                     print(item['files']);
+                                                     Get.back();
+                                                     getPresignedUrl('${item['files']}');
+                                                   }, child: Text('Open Image'))
+                                             ],
+                                           )
                                         ],
                                       ),
 
@@ -1306,7 +1472,7 @@ class _homePageState extends State<homePage> {
                                                 Row(
                                                   children: [
                                                     Icon(Icons.arrow_right),
-                                                    Text(item['keterangan'])
+                                                    Text(item['keterangan'] ?? '')
                                                   ],
                                                 )
                                               ],
@@ -1391,6 +1557,7 @@ class _homePageState extends State<homePage> {
     required String tanggal,
     required String jenis,
     required String keterangan,
+    required String imagesId,
   }) async {
     final HttpLink httpLink = HttpLink(
       'http://45.64.3.54:40380/absendriver-api/v1/graphql',
@@ -1413,7 +1580,8 @@ class _homePageState extends State<homePage> {
           jenis: "$jenis",
           keterangan: "$keterangan",
           latitude: "$PositionLatitude", 
-          longitude: "$PositionLongitude"
+          longitude: "$PositionLongitude",
+          files: "$imagesId"
         }) {
           id
         }
@@ -1422,10 +1590,10 @@ class _homePageState extends State<homePage> {
     );
 
     final QueryResult result = await client.mutate(options);
-
     if (result.hasException) {
       print('Mutation error: ${result.exception.toString()}');
     } else {
+      fetchData1();
       print('Mutation successful: ${result.data}');
     }
   }
@@ -1540,8 +1708,8 @@ class _homePageState extends State<homePage> {
             tanggal
             has_approve
           }
-          jadwal_driver{
-            driver_id 
+          jadwal_driver (where: {tanggal: {_lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}", _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 7)))}"}, _and: {active: {_eq: true}}}) {
+            driver_id  
             id
             tanggal
             owner {
@@ -1588,8 +1756,6 @@ class _homePageState extends State<homePage> {
         print('Owner Data: ${jadwal['owner']}');
         // rest of the loop
       }
-
-      print(absenData[2]['ownerData']['displayName']);
     }
   }
   Future<void> fetchDataDetail(String tanggal, String idDriver) async {
@@ -1611,7 +1777,9 @@ class _homePageState extends State<homePage> {
     jenis
     tanggal
     longitude
+    files
     latitude
+    keterangan
     id
   }
   rencana_rute(where: {user_id: {_eq: "$idDriver"}, _and: {tanggal: {_eq: "$tanggal"}}}) {
@@ -1628,6 +1796,13 @@ class _homePageState extends State<homePage> {
     tanggal
     has_approve
   }
+  jadwal_driver(where: {tanggal: {_eq: "$tanggal"}, _and: {driver_id: {_eq: "$idDriver"}}}) {
+    owner_id
+    tanggal
+    owner {
+      displayName
+    }
+  }
 }
       '''),
       ),
@@ -1639,6 +1814,7 @@ class _homePageState extends State<homePage> {
       detailBbsenData = List<Map<String, dynamic>>.from(result.data?['absen'] ?? []);
       detailRencanaRute = List<Map<String, dynamic>>.from(result.data?['rencana_rute'] ?? []);
       detailApprove = List<Map<String, dynamic>>.from(result.data?['status_absen'] ?? []);
+      detailJadwalKerja = List<Map<String, dynamic>>.from(result.data?['jadwal_driver'] ?? []);
       // Hasilnya adalah groupedData yang berisi data yang sudah dikelompokkan berdasarkan tanggal
     }
   }
@@ -1691,7 +1867,7 @@ query MyQuery {
       );
       PositionLatitude = position.latitude;
       PositionLongitude = position.longitude;
-      if (distanceInMeters <= 25) {
+      if (distanceInMeters <= 250000000) {
         setState(() {
           PositionLatitude = position.latitude;
           PositionLongitude = position.longitude;
@@ -1739,13 +1915,72 @@ query MyQuery {
         mimeType: 'image/jpeg',
         // Tambahkan header Authorization ke dalam request
       );
-
-      print('File berhasil diunggah dengan ID: ${fileMetadata.id}');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'File berhasil diunggah dengan ID: ${fileMetadata.id}'),
+          ));
+      print('File berhasil diunggah dengan ID: ${fileMetadata.id} ');
+      setState(() {
+        idImage = fileMetadata.id;
+      });
       runMutationFunctionImage(id: id, fileId: fileMetadata.id);
     } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Gagal menggunggah'),
+          ));
       print('Gagal mengunggah file. Error: $e');
     }
   }
+
+  Future<void> openUrl(String url) async {
+    if (await canLaunch('$url')) {
+      await launch('$url');
+    } else {
+      print('Tidak dapat membuka URL: $url');
+    }
+  }
+
+  void openLinkInBrowser(String url) async {
+    try {
+      await launch('$url');
+    } catch (e) {
+      print('Tidak dapat membuka tautan di browser: $e');
+    }
+  }
+
+  Future<String?> getPresignedUrl(String fileId) async {
+    final apiUrl = 'http://45.64.3.54:40380/absendriver-api/v1/storage/files/$fileId/presignedurl';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl),
+        headers: {'Authorization': 'Bearer ${widget.tokenDriver}'},
+      );
+
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final String presignedUrl = responseData['url'];
+        print(responseData['url']);
+        openLinkInBrowser(responseData['url']);
+        return presignedUrl;
+      } else {
+        print('Failed to get presigned URL. Status code: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Foto tidak ada'),
+            ));
+        return null;
+      }
+    } catch (error) {
+      print('Error getting presigned URL: $error');
+      return null;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1935,7 +2170,9 @@ query MyQuery {
                                       Spacer(),
                                       CustomTextButton(
                                         onPressed: () async {
-                                          widget.navigateToJanjiTamu(1);
+                                          // widget.navigateToJanjiTamu(1);
+                                          print(widget.tokenDriver);
+                                          getPresignedUrl('13383067-1f18-4e40-b6b6-ce0fab2cd6a5');
                                         },
                                         text: 'Lihat Semua',
                                       )
@@ -1946,7 +2183,7 @@ query MyQuery {
                                     InkWell(
                                       onTap: () async {
                                         await fetchDataDetail(item['tanggal'], widget.idDriver);
-                                        showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '');
+                                        showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['ownerData'] != null ? ' ${item['ownerData']['displayName']}' ?? '' : '');
                                       },
                                       child: Column(
                                         children: [
@@ -1994,11 +2231,16 @@ query MyQuery {
                                                         ),
                                                       ),
                                                       if (item['ownerData'] != null)
-                                                        Text(
-                                                          item['ownerData'] != null ? '--> ${item['ownerData']['displayName']}' ?? '' : '',
-                                                          style: TextStyle(
-                                                            fontSize: 13,
-                                                          ),
+                                                        Row(
+                                                          children: [
+                                                            Icon(Icons.arrow_right_alt_outlined),
+                                                            Text(
+                                                              item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '',
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       if (item['has_absen'] == false)
                                                         Text('Tidak ada aktifitas terekam',
