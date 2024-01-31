@@ -159,16 +159,19 @@ class _homeHrdPageState extends State<homeHrdPage> {
                                                 ),
                                               ],
                                             ),
-                                            Row(
-                                              children: [
-                                                Icon(Icons.arrow_right_sharp),
-                                                Text(item['owner']['displayName'] ?? '',
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child:  Wrap(
+                                                children: [
+                                                  Icon(Icons.arrow_right_sharp),
+                                                  Text(item['owner']['displayName'] ?? '',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             )
                                           ],
                                         ),
@@ -234,49 +237,54 @@ class _homeHrdPageState extends State<homeHrdPage> {
                                                 fontSize: 16,
                                               ),
                                             ),
-                                            Row(
-                                              children: [
-                                                Text(item['jam'],
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child: Wrap(
+                                                children: [
+                                                  Text(item['jam'],
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
                                                   ),
-                                                ),
-                                                if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
-                                                  Row(
+                                                  if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
+                                                    Wrap(
+                                                      children: [
+                                                        Icon(Icons.arrow_right),
+                                                        Text(item['keterangan'] ?? '')
+                                                      ],
+                                                    )
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child: Wrap(
+                                                children: [
+                                                  Text(item['latitude'] ?? '',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
+                                                  ),
+                                                  Wrap(
                                                     children: [
                                                       Icon(Icons.arrow_right),
-                                                      Text(item['keterangan'] ?? '')
+                                                      Text(item['longitude'] ?? '',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
+                                                      )
                                                     ],
                                                   )
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(item['latitude'] ?? '',
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
-                                                  ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['longitude'] ?? '',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
-                                                      ),
-                                                    )
-                                                  ],
-                                                )
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                             if(item['jenis' ]== 'SAKIT')
                                               TextButton(
                                                   onPressed: (){
                                                     print(item['files']);
-                                                    Get.back();
                                                     getPresignedUrl('${item['files']}');
                                                   }, child: Text('Open Image'))
                                           ],
@@ -338,42 +346,48 @@ class _homeHrdPageState extends State<homeHrdPage> {
                                                 fontSize: 16,
                                               ),
                                             ),
-                                            Row(
-                                              children: [
-                                                Text(item['jam_mulai'],
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child: Wrap(
+                                                children: [
+                                                  Text(item['jam_mulai'],
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
                                                   ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['keterangan'])
-                                                  ],
-                                                )
-                                              ],
+                                                  Wrap(
+                                                    children: [
+                                                      Icon(Icons.arrow_right),
+                                                      Text(item['keterangan'])
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
                                             ),
-                                            Row(
-                                              children: [
-                                                Text(item['latitude'] ?? '',
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child: Wrap(
+                                                children: [
+                                                  Text(item['latitude'] ?? '',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
                                                   ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['longitude'] ?? '',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
-                                                      ),
-                                                    )
-                                                  ],
-                                                )
-                                              ],
+                                                  Wrap(
+                                                    children: [
+                                                      Icon(Icons.arrow_right),
+                                                      Text(item['longitude'] ?? '',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
+                                                      )
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
                                             )
                                           ],
                                         ),
@@ -635,11 +649,23 @@ class _homeHrdPageState extends State<homeHrdPage> {
         return presignedUrl;
       } else {
         print('Failed to get presigned URL. Status code: ${response.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Foto tidak ada'),
-            ));
+        showDialog(
+          context: context, // pastikan ada parameter context
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('Foto tidak ada'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // tutup dialog saat tombol ditekan
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
         return null;
       }
     } catch (error) {

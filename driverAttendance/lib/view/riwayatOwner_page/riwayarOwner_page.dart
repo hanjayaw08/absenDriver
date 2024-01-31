@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 
 class riwayatOwnerPage extends StatefulWidget {
@@ -92,6 +93,11 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
     try {
       await launch('https://wa.me/$phoneNUmber');
     } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'No. Telepon Tidak Ada'),
+          ));
       print('Tidak dapat membuka tautan di browser: $e');
     }
   }
@@ -193,16 +199,19 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                                     ),
                                                   ],
                                                 ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right_sharp),
-                                                    Text(item['owner']['displayName'] ?? '',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
+                                                Container(
+                                                  width: screenSize.width * 0.6,
+                                                  child: Wrap(
+                                                    children: [
+                                                      Icon(Icons.arrow_right_sharp),
+                                                      Text(item['owner']['displayName'] ?? '',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 )
                                               ],
                                             ),
@@ -268,49 +277,54 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                                     fontSize: 16,
                                                   ),
                                                 ),
-                                                Row(
-                                                  children: [
-                                                    Text(item['jam'],
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
+                                                Container(
+                                                  width: screenSize.width * 0.6,
+                                                  child:  Wrap(
+                                                    children: [
+                                                      Text(item['jam'],
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
                                                       ),
-                                                    ),
-                                                    if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
-                                                      Row(
+                                                      if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
+                                                        Wrap(
+                                                          children: [
+                                                            Icon(Icons.arrow_right),
+                                                            Text(item['keterangan'] ?? '')
+                                                          ],
+                                                        )
+                                                    ],
+                                                  ),
+                                                ),
+                                                Container(
+                                                  width: screenSize.width * 0.6,
+                                                  child: Wrap(
+                                                    children: [
+                                                      Text(item['latitude'] ?? '',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
+                                                      ),
+                                                      Wrap(
                                                         children: [
                                                           Icon(Icons.arrow_right),
-                                                          Text(item['keterangan'] ?? '')
+                                                          Text(item['longitude'] ?? '',
+                                                            style: TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.bold
+                                                            ),
+                                                          )
                                                         ],
                                                       )
-                                                  ],
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Text(item['latitude'] ?? '',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
-                                                      ),
-                                                    ),
-                                                    Row(
-                                                      children: [
-                                                        Icon(Icons.arrow_right),
-                                                        Text(item['longitude'] ?? '',
-                                                          style: TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.bold
-                                                          ),
-                                                        )
-                                                      ],
-                                                    )
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
                                                 if(item['jenis' ]== 'SAKIT')
                                                   TextButton(
                                                       onPressed: (){
                                                         print(item['files']);
-                                                        Get.back();
                                                         getPresignedUrl('${item['files']}');
                                                       }, child: Text('Open Image'))
                                               ],
@@ -372,42 +386,48 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                                     fontSize: 16,
                                                   ),
                                                 ),
-                                                Row(
-                                                  children: [
-                                                    Text(item['jam_mulai'],
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
+                                                Container(
+                                                  width: screenSize.width * 0.6,
+                                                  child: Wrap(
+                                                    children: [
+                                                      Text(item['jam_mulai'],
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Row(
-                                                      children: [
-                                                        Icon(Icons.arrow_right),
-                                                        Text(item['keterangan'] ?? '')
-                                                      ],
-                                                    )
-                                                  ],
+                                                      Wrap(
+                                                        children: [
+                                                          Icon(Icons.arrow_right),
+                                                          Text(item['keterangan'] ?? '')
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
                                                 ),
-                                                Row(
-                                                  children: [
-                                                    Text(item['latitude'] ?? '',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
+                                                Container(
+                                                  width: screenSize.width * 0.6,
+                                                  child: Wrap(
+                                                    children: [
+                                                      Text(item['latitude'] ?? '',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Row(
-                                                      children: [
-                                                        Icon(Icons.arrow_right),
-                                                        Text(item['longitude'] ?? '',
-                                                          style: TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.bold
-                                                          ),
-                                                        )
-                                                      ],
-                                                    )
-                                                  ],
+                                                      Wrap(
+                                                        children: [
+                                                          Icon(Icons.arrow_right),
+                                                          Text(item['longitude'] ?? '',
+                                                            style: TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.bold
+                                                            ),
+                                                          )
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
                                                 )
                                               ],
                                             ),
@@ -465,11 +485,18 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                                     fontSize: 16,
                                                   ),
                                                 ),
-                                                Text(
-                                                  item['reject_reason'] == null ? '' : item['reject_reason'],
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
+                                                Container(
+                                                  width: screenSize.width * 0.6,
+                                                  child: Wrap(
+                                                    children: [
+                                                      Text(
+                                                        item['reject_reason'] == null ? '' : item['reject_reason'],
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      )
+                                                    ],
                                                   ),
                                                 ),
                                               ],
@@ -502,34 +529,57 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                               ),
                               textAlign: TextAlign.center,
                             ),
-                              Row(
+                            if (detailApprove.isEmpty || detailApprove[0]['approve'] == false)
+                                Row(
                               children: [
-                                    Expanded(
+                                      Expanded(
                                       child:  Container(
                                         height: 50,
                                         child: CustomButton(
                                           onPressed: (){
-                                            // setState(() {
-                                            //   isLoading = true;
-                                            // });
-                                            // for (var item in detailBbsenData) {
-                                            //   absenID.add(item['absen_id']);
-                                            // }
-                                            // for (var item in detailRencanaRute){
-                                            //   ruterID.add(item['rute_id']);
-                                            // }
-                                            // runMutationFunctionRute(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal);
-                                            // fetchData1();
-                                            // ruterID = [];
-                                            // absenID = [];
-                                            // setState(() {
-                                            //   isLoading = false;
-                                            // });
-                                            // setState(() {
-                                            //   fetchData1();
-                                            // });
-                                            // Get.back();
-                                            // print(item['approve']);
+                                            if(detailApprove.isEmpty){
+                                              setState(() {
+                                                isLoading = true;
+                                                EasyLoading.show();
+                                              });
+                                              for (var item in detailBbsenData) {
+                                                absenID.add(item['absen_id']);
+                                              }
+                                              for (var item in detailRencanaRute){
+                                                ruterID.add(item['rute_id']);
+                                              }
+                                              runMutationFunctionRute(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal).then((value) {
+                                                fetchData1();
+                                                ruterID = [];
+                                                absenID = [];
+                                                setState(() {
+                                                  isLoading = false;
+                                                  EasyLoading.dismiss();
+                                                });
+                                                setState(() {
+                                                  fetchData1();
+                                                });
+                                                Get.back();
+                                              });
+                                            }else{
+                                              setState(() {
+                                                isLoading = true;
+                                                EasyLoading.show();
+                                              });
+                                              for (var item in detailApprove){
+                                                updateApprove(Id: item['id'], keterangan: alasanText.text, approve: true).then((value) {
+                                                  fetchData1();
+                                                  setState(() {
+                                                    isLoading = false;
+                                                    EasyLoading.dismiss();
+                                                  });
+                                                  setState(() {
+                                                    fetchData1();
+                                                  });
+                                                });
+                                              }
+                                              Get.back();
+                                            }
                                           },
                                           width: 100,
                                           height: 100,
@@ -669,6 +719,7 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                           onPressed: (){
                                             setState(() {
                                               isLoading = true;
+                                              EasyLoading.show();
                                             });
                                             if (detailApprove.isEmpty){
                                               for (var item in detailBbsenData) {
@@ -677,23 +728,35 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                               for (var item in detailRencanaRute){
                                                 ruterID.add(item['rute_id']);
                                               }
-                                              runMutationFunctionRute(absenId: absenID, keterangan: alasanText.text, driverId: idDriver, approve: false, ruteID: ruterID, tanggal: tanggal);
+                                              runMutationFunctionRute(absenId: absenID, keterangan: alasanText.text, driverId: idDriver, approve: false, ruteID: ruterID, tanggal: tanggal).then((value) {
+                                                ruterID = [];
+                                                absenID = [];
+                                                alasanText.text = '';
+                                                setState(() {
+                                                  isLoading = false;
+                                                  EasyLoading.dismiss();
+                                                });
+                                                fetchData1();
+                                              });
+                                              Get.back();
+                                              Get.back();
                                             }
                                             else{
                                               for (var item in detailApprove){
-                                                updateTolak(Id: item['id'], keterangan: alasanText.text);
+                                                updateApprove(Id: item['id'], keterangan: alasanText.text, approve: false).then((value) {
+                                                  ruterID = [];
+                                                  absenID = [];
+                                                  alasanText.text = '';
+                                                  setState(() {
+                                                    isLoading = false;
+                                                  });
+                                                  fetchData1();
+                                                  // Get.back();
+                                                });
                                               }
+                                              Get.back();
+                                              Get.back();
                                             }
-                                            ruterID = [];
-                                            absenID = [];
-                                            alasanText.text = '';
-                                            setState(() {
-                                              isLoading = false;
-                                            });
-                                            fetchData1();
-                                            Get.back();
-                                            Get.back();
-                                            print('object');
                                           },
                                           width: 100,
                                           height: 100,
@@ -1137,7 +1200,7 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
     }
   }
 
-  void runMutationFunctionRute({
+ Future<void> runMutationFunctionRute({
     required List<int> absenId,
     required String keterangan,
     required String driverId,
@@ -1176,9 +1239,10 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
     }
   }
 
-  void updateTolak({
+  Future<void> updateApprove({
     required int Id,
     required String keterangan,
+    required bool approve
   }) async {
     final HttpLink httpLink = HttpLink(
       'http://45.64.3.54:40380/absendriver-api/v1/graphql',
@@ -1195,7 +1259,7 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
     final MutationOptions options = MutationOptions(
       document: gql('''
      mutation MyMutation {
-  update_approval_by_pk(pk_columns: {id: "$Id"}, _set: {approve: false, reject_reason: "$keterangan"}) {
+  update_approval_by_pk(pk_columns: {id: "$Id"}, _set: {approve: "$approve", reject_reason: "$keterangan"}) {
     id
   }
 }
@@ -1287,11 +1351,23 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
         return presignedUrl;
       } else {
         print('Failed to get presigned URL. Status code: ${response.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Foto tidak ada'),
-            ));
+        showDialog(
+          context: context, // pastikan ada parameter context
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('Foto tidak ada'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // tutup dialog saat tombol ditekan
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
         return null;
       }
     } catch (error) {
@@ -1304,7 +1380,7 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
 
-    return DefaultTabController(
+    return WillPopScope(child: DefaultTabController(
       length: 2, // Sesuaikan jumlah tab
       child: Scaffold(
         appBar: AppBar(
@@ -1623,7 +1699,16 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
                                     Spacer(),
                                     InkWell(
                                       onTap: (){
-                                        openWhatsAppOrBrowser(item['phoneNumber']);
+                                        if(item['phoneNumber'] != null) {
+                                          openWhatsAppOrBrowser(
+                                              item['phoneNumber']);
+                                        }else{
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    'No. Telepon Tidak Ada'),
+                                              ));
+                                        }
                                       },
                                       child: Image.asset('assets/img/iconWhatsapp.png',
                                         scale: 3.5,
@@ -1646,7 +1731,9 @@ class _riwayatOwnerPageState extends State<riwayatOwnerPage> {
           ],
         ),
       ),
-    );
+    ), onWillPop: () async {
+      return false;
+    });
   }
 }
 

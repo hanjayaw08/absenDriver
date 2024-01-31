@@ -330,47 +330,47 @@ class _profilPageState extends State<profilPage> {
 
     final screenSize = MediaQuery.of(context).size;
 
-    return Scaffold(
+    return WillPopScope(child: Scaffold(
       appBar: null,
       body: SingleChildScrollView(
-        child: Stack(
-          children: [
-            Image.asset('assets/img/backGroundProfil.png'),
-            Padding(
+          child: Stack(
+            children: [
+              Image.asset('assets/img/backGroundProfil.png'),
+              Padding(
                 padding: EdgeInsets.only(top: 50),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                        padding: EdgeInsets.only(left: 16, right: 16),
-                        child:  Row(
-                          children: [
-                            Text('Akun Pengguna',
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold
-                              ),
+                      padding: EdgeInsets.only(left: 16, right: 16),
+                      child:  Row(
+                        children: [
+                          Text('Akun Pengguna',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
                             ),
-                            Spacer(),
-                            Container(
-                              height: 35,
-                              child: CustomButton(
-                                onPressed: (){
-                                  performLogout();
-                                },
-                                width: 100,
-                                height: 100,
-                                text: 'Keluar',
-                                icon1: Icons.logout,
-                                radius: 10,
-                                cekSpacer: false,
-                                textColor: Colors.red,
-                                iconColor: Colors.red,
-                                buttonColor: Colors.white,
-                              ),
-                            )
-                          ],
-                        ),
+                          ),
+                          Spacer(),
+                          Container(
+                            height: 35,
+                            child: CustomButton(
+                              onPressed: (){
+                                performLogout();
+                              },
+                              width: 100,
+                              height: 100,
+                              text: 'Keluar',
+                              icon1: Icons.logout,
+                              radius: 10,
+                              cekSpacer: false,
+                              textColor: Colors.red,
+                              iconColor: Colors.red,
+                              buttonColor: Colors.white,
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                     SizedBox(height: 30,),
                     Padding(
@@ -386,36 +386,36 @@ class _profilPageState extends State<profilPage> {
                     ),
                     SizedBox(height: 30,),
                     Padding(
-                      padding: EdgeInsets.only(left: 16, right: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Obx(() => Text(absensi.isNotEmpty && absensi[0]['email'] != null
-                              ? absensi[0]['email']
-                              : '',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16
-                            ),
-                          ),),
-                          Obx(() => Text(absensi.isNotEmpty && absensi[0]['displayName'] != null
-                              ? absensi[0]['displayName']
-                              : '',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w300,
-                                fontSize: 13
-                            ),
-                          ),),
-                          Obx(() => Text(absensi.isNotEmpty && absensi[0]['phoneNumber'] != null
-                              ? absensi[0]['phoneNumber']
-                              : '',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w300,
-                                fontSize: 13
-                            ),
-                          )),
-                        ],
-                      )
+                        padding: EdgeInsets.only(left: 16, right: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Obx(() => Text(absensi.isNotEmpty && absensi[0]['email'] != null
+                                ? absensi[0]['email']
+                                : '',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16
+                              ),
+                            ),),
+                            Obx(() => Text(absensi.isNotEmpty && absensi[0]['displayName'] != null
+                                ? absensi[0]['displayName']
+                                : '',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w300,
+                                  fontSize: 13
+                              ),
+                            ),),
+                            Obx(() => Text(absensi.isNotEmpty && absensi[0]['phoneNumber'] != null
+                                ? absensi[0]['phoneNumber']
+                                : '',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w300,
+                                  fontSize: 13
+                              ),
+                            )),
+                          ],
+                        )
                     ),
                     SizedBox(height: 10,),
                     Container(
@@ -502,17 +502,19 @@ class _profilPageState extends State<profilPage> {
                     ),
                   ],
                 ),
-            ),
-            if (isLoading)
-              Container(
-                height: MediaQuery.of(context).size.height,  // Menyesuaikan tinggi dengan tinggi layar
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
               ),
-          ],
-        )
+              if (isLoading)
+                Container(
+                  height: MediaQuery.of(context).size.height,  // Menyesuaikan tinggi dengan tinggi layar
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+            ],
+          )
       ),
-    );
+    ), onWillPop: () async {
+      return false;
+    });
   }
 }

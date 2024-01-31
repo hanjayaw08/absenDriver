@@ -153,16 +153,19 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                                 ),
                                               ],
                                             ),
-                                            Row(
-                                              children: [
-                                                Icon(Icons.arrow_right_sharp),
-                                                Text(item['owner']['displayName'] ?? '',
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child: Wrap(
+                                                children: [
+                                                  Icon(Icons.arrow_right_sharp),
+                                                  Text(item['owner']['displayName'] ?? '',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             )
                                           ],
                                         ),
@@ -228,49 +231,54 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                                 fontSize: 16,
                                               ),
                                             ),
-                                            Row(
-                                              children: [
-                                                Text(item['jam'],
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child: Wrap(
+                                                children: [
+                                                  Text(item['jam'],
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
                                                   ),
-                                                ),
-                                                if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
-                                                  Row(
+                                                  if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
+                                                    Wrap(
+                                                      children: [
+                                                        Icon(Icons.arrow_right),
+                                                        Text(item['keterangan'] ?? '')
+                                                      ],
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child:  Wrap(
+                                                children: [
+                                                  Text(item['latitude'] ?? '',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
+                                                  ),
+                                                  Wrap(
                                                     children: [
                                                       Icon(Icons.arrow_right),
-                                                      Text(item['keterangan'] ?? '')
+                                                      Text(item['longitude'] ?? '',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
+                                                      )
                                                     ],
-                                                  ),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(item['latitude'] ?? '',
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
-                                                  ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['longitude'] ?? '',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
-                                                      ),
-                                                    )
-                                                  ],
-                                                )
-                                              ],
+                                                  )
+                                                ],
+                                              ),
                                             ),
                                             if(item['jenis' ]== 'SAKIT')
                                               TextButton(
                                                   onPressed: (){
                                                     print(item['files']);
-                                                    Get.back();
                                                     getPresignedUrl('${item['files']}');
                                                   }, child: Text('Open Image'))
                                           ],
@@ -332,42 +340,48 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                                 fontSize: 16,
                                               ),
                                             ),
-                                            Row(
-                                              children: [
-                                                Text(item['jam_mulai'],
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child: Wrap(
+                                                children: [
+                                                  Text(item['jam_mulai'],
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
                                                   ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['keterangan'])
-                                                  ],
-                                                )
-                                              ],
+                                                  Wrap(
+                                                    children: [
+                                                      Icon(Icons.arrow_right),
+                                                      Text(item['keterangan'])
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
                                             ),
-                                            Row(
-                                              children: [
-                                                Text(item['latitude'] ?? '',
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
-                                                  ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['longitude'] ?? '',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
-                                                      ),
-                                                    )
-                                                  ],
-                                                )
-                                              ],
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                               child: Wrap(
+                                                 children: [
+                                                   Text(item['latitude'] ?? '',
+                                                     style: TextStyle(
+                                                         fontSize: 16,
+                                                         fontWeight: FontWeight.bold
+                                                     ),
+                                                   ),
+                                                   Wrap(
+                                                     children: [
+                                                       Icon(Icons.arrow_right),
+                                                       Text(item['longitude'] ?? '',
+                                                         style: TextStyle(
+                                                             fontSize: 16,
+                                                             fontWeight: FontWeight.bold
+                                                         ),
+                                                       )
+                                                     ],
+                                                   )
+                                                 ],
+                                               ),
                                             )
                                           ],
                                         ),
@@ -1422,11 +1436,23 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
         return presignedUrl;
       } else {
         print('Failed to get presigned URL. Status code: ${response.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Foto tidak ada'),
-            ));
+        showDialog(
+          context: context, // pastikan ada parameter context
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('Foto tidak ada'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // tutup dialog saat tombol ditekan
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
         return null;
       }
     } catch (error) {
@@ -1440,7 +1466,7 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
 
-    return DefaultTabController(
+    return WillPopScope(child: DefaultTabController(
       length: 2, // Sesuaikan jumlah tab
       child: Scaffold(
         appBar: AppBar(
@@ -1454,48 +1480,48 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
               ),
               Spacer(),
               InkWell(
-                onTap: () async {
-                  // await  fetchDataDetailPDF();
-                  // for (var statusAbsen in detailStatusAbsen) {
-                  //   String tanggal = statusAbsen['tanggal'];
-                  //   String userId = statusAbsen['user_id'];
-                  //   String nama = statusAbsen['driver']['displayName'];
-                  //   // Temukan data absen berdasarkan tanggal dan user_id
-                  //   var absen = detailAbsenDataPDF.where(
-                  //         (element) =>
-                  //     element['tanggal'] == '$tanggal' &&
-                  //         element['user_id'] == '$userId',
-                  //   ).toList();
-                  //
-                  //   // Temukan data rencana rute berdasarkan tanggal dan user_id
-                  //   var rencanaRute = detailRencanaRutePDF.where((element) =>
-                  //   element['tanggal'] == '$tanggal' &&
-                  //       element['user_id'] == '$userId',).toList();
-                  //   print('ini rencana rute $rencanaRute');
-                  //   print('ini absen $absen');
-                  //   print('ini user id $userId');
-                  //
-                  //   // Gabungkan data dan tambahkan ke dalam array hasil
-                  //   var combinedItem = {
-                  //     'nama' : nama,
-                  //     'tanggal': tanggal,
-                  //     'user_id': userId,
-                  //     'absen': absen,
-                  //     'rencana_rute': rencanaRute,
-                  //   };
-                  //   combinedData.add(combinedItem);
-                  // }
-                  // final pdfPath = await generatePDF(detailStatusAbsen, detailAbsenDataPDF, detailRencanaRutePDF);
-                  // print('PDF generated successfully.');
-                  // openPDF(pdfPath);
-                  // _saveAndViewPdf(pdfPath);
-                  // combinedData = [];
-                  // groupedData.clear();
-                  _showPopupTombolDownload(context);
-                },
-                child: Image.asset('assets/img/Downlaod.png',
-                  scale: 2.9,
-                )
+                  onTap: () async {
+                    // await  fetchDataDetailPDF();
+                    // for (var statusAbsen in detailStatusAbsen) {
+                    //   String tanggal = statusAbsen['tanggal'];
+                    //   String userId = statusAbsen['user_id'];
+                    //   String nama = statusAbsen['driver']['displayName'];
+                    //   // Temukan data absen berdasarkan tanggal dan user_id
+                    //   var absen = detailAbsenDataPDF.where(
+                    //         (element) =>
+                    //     element['tanggal'] == '$tanggal' &&
+                    //         element['user_id'] == '$userId',
+                    //   ).toList();
+                    //
+                    //   // Temukan data rencana rute berdasarkan tanggal dan user_id
+                    //   var rencanaRute = detailRencanaRutePDF.where((element) =>
+                    //   element['tanggal'] == '$tanggal' &&
+                    //       element['user_id'] == '$userId',).toList();
+                    //   print('ini rencana rute $rencanaRute');
+                    //   print('ini absen $absen');
+                    //   print('ini user id $userId');
+                    //
+                    //   // Gabungkan data dan tambahkan ke dalam array hasil
+                    //   var combinedItem = {
+                    //     'nama' : nama,
+                    //     'tanggal': tanggal,
+                    //     'user_id': userId,
+                    //     'absen': absen,
+                    //     'rencana_rute': rencanaRute,
+                    //   };
+                    //   combinedData.add(combinedItem);
+                    // }
+                    // final pdfPath = await generatePDF(detailStatusAbsen, detailAbsenDataPDF, detailRencanaRutePDF);
+                    // print('PDF generated successfully.');
+                    // openPDF(pdfPath);
+                    // _saveAndViewPdf(pdfPath);
+                    // combinedData = [];
+                    // groupedData.clear();
+                    _showPopupTombolDownload(context);
+                  },
+                  child: Image.asset('assets/img/Downlaod.png',
+                    scale: 2.9,
+                  )
               ),
               SizedBox(width: 5,),
               InkWell(
@@ -1518,8 +1544,8 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                       fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(selectedDate1 ?? DateTime.now()), DateFormat('yyyy-MM-dd').format(selectedDate2 ?? DateTime.now()));
                     },
                     onCancelClick: () {
-                        fetchData1();
-                        fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32))), DateFormat('yyyy-MM-dd').format(DateTime.now()));
+                      fetchData1();
+                      fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32))), DateFormat('yyyy-MM-dd').format(DateTime.now()));
                     },
                   );
                 },
@@ -1543,142 +1569,142 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
             Obx(() {
               return RefreshIndicator(
                   child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        // judul Dan Kalendar
-                        if (selectedDate1 != null && selectedDate2 != null)
-                          Padding(
-                            padding: EdgeInsets.only(top: 15),
-                            child: Container(
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    color: Color.fromRGBO(14, 137, 145, 0.2)// Radius border
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(10),
-                                  child: IntrinsicWidth(
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          '${DateFormat('MMM dd, yyyy', 'id').format(selectedDate1!)} - ${DateFormat('MMM dd, yyyy', 'id').format(selectedDate2!)}',
-                                          style: TextStyle(fontSize: 18.0),
-                                        ),
-                                        InkWell(
-                                          onTap: () {
-                                            setState(() {
-                                              selectedDate1 = null;
-                                              selectedDate2 = null;
-                                              fetchData1();
-                                              fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32))), DateFormat('yyyy-MM-dd').format(DateTime.now()));
-                                            });
-                                          },
-                                          child: Icon(Icons.close),
-                                        ),
-                                      ],
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            // judul Dan Kalendar
+                            if (selectedDate1 != null && selectedDate2 != null)
+                              Padding(
+                                padding: EdgeInsets.only(top: 15),
+                                child: Container(
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20.0),
+                                        color: Color.fromRGBO(14, 137, 145, 0.2)// Radius border
                                     ),
-                                  ),
-                                )
-                            ),
-                          ),
-                        SizedBox(height: 15,),
-                        for(var item in absenData)
-                          InkWell(
-                            onTap: () async {
-                              await fetchDataDetail(item['tanggal'], item['driver']['id']);
-
-                              showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '');
-                            },
-                            child: Column(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                    color: Color.fromRGBO(218, 218, 218, 1),
-                                    border: Border.all(
-                                      color: Colors.black, // Warna border yang diinginkan
-                                      width: 1.0, // Ketebalan border
-                                    ),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(10),
+                                      child: IntrinsicWidth(
+                                        child: Row(
                                           children: [
-                                            if (item['has_absen'] == false)
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red, // Warna latar belakang
-                                                ),
-                                                padding: EdgeInsets.all(0.0), // Jarak antara ikon dan latar belakang
-                                                child: Icon(
-                                                  Icons.close,
-                                                  color: Colors.white, // Warna ikon
-                                                  size: 20.0, // Ukuran ikon
-                                                ),
-                                              )
-                                            else
-                                              Icon(
-                                                Icons.check_box,
-                                                color: Colors.green,
-                                              ),
-
-                                            SizedBox(width: 10,),
-
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(item['driver']['displayName'],
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
-                                                  ),
-                                                ),
-                                                Text(DateFormat('EEEE, d MMM y', 'id').format(DateTime.parse(item['tanggal'])),
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                                if (item['ownerData'] != null)
-                                                  Row(
-                                                    children: [
-                                                      Icon(Icons.arrow_right_alt_rounded),
-                                                      Text(
-                                                        item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '',
-                                                        style: TextStyle(
-                                                          fontSize: 13,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                Text(item['has_absen'] == false ? 'Tidak ada aktifitas terekam' : item['has_approve'] == true ? 'Laporan di Approve' : 'Laporan belum di Approve',
-                                                  style: TextStyle(
-                                                      fontSize: 13,
-                                                      fontWeight: FontWeight.w300
-                                                  ),
-                                                )
-                                              ],
-                                            )
+                                            Text(
+                                              '${DateFormat('MMM dd, yyyy', 'id').format(selectedDate1!)} - ${DateFormat('MMM dd, yyyy', 'id').format(selectedDate2!)}',
+                                              style: TextStyle(fontSize: 18.0),
+                                            ),
+                                            InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  selectedDate1 = null;
+                                                  selectedDate2 = null;
+                                                  fetchData1();
+                                                  fetchDataDetailPDF(DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 32))), DateFormat('yyyy-MM-dd').format(DateTime.now()));
+                                                });
+                                              },
+                                              child: Icon(Icons.close),
+                                            ),
                                           ],
                                         ),
-                                        SizedBox(height: 10,),
-                                      ],
-                                    ),
-                                  ),
+                                      ),
+                                    )
                                 ),
-                                SizedBox(height: 15,),
-                              ],
-                            ),
-                          ),
-                      ]
+                              ),
+                            SizedBox(height: 15,),
+                            for(var item in absenData)
+                              InkWell(
+                                onTap: () async {
+                                  await fetchDataDetail(item['tanggal'], item['driver']['id']);
+
+                                  showDetailAbsensiModal(context, item['has_absen'], item['tanggal'], item['driver']['id'], item['has_approve'], item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '');
+                                },
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                        color: Color.fromRGBO(218, 218, 218, 1),
+                                        border: Border.all(
+                                          color: Colors.black, // Warna border yang diinginkan
+                                          width: 1.0, // Ketebalan border
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                if (item['has_absen'] == false)
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.red, // Warna latar belakang
+                                                    ),
+                                                    padding: EdgeInsets.all(0.0), // Jarak antara ikon dan latar belakang
+                                                    child: Icon(
+                                                      Icons.close,
+                                                      color: Colors.white, // Warna ikon
+                                                      size: 20.0, // Ukuran ikon
+                                                    ),
+                                                  )
+                                                else
+                                                  Icon(
+                                                    Icons.check_box,
+                                                    color: Colors.green,
+                                                  ),
+
+                                                SizedBox(width: 10,),
+
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(item['driver']['displayName'],
+                                                      style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.bold
+                                                      ),
+                                                    ),
+                                                    Text(DateFormat('EEEE, d MMM y', 'id').format(DateTime.parse(item['tanggal'])),
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                    if (item['ownerData'] != null)
+                                                      Row(
+                                                        children: [
+                                                          Icon(Icons.arrow_right_alt_rounded),
+                                                          Text(
+                                                            item['ownerData'] != null ? '${item['ownerData']['displayName']}' ?? '' : '',
+                                                            style: TextStyle(
+                                                              fontSize: 13,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    Text(item['has_absen'] == false ? 'Tidak ada aktifitas terekam' : item['has_approve'] == true ? 'Laporan di Approve' : 'Laporan belum di Approve',
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w300
+                                                      ),
+                                                    )
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                            SizedBox(height: 10,),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 15,),
+                                  ],
+                                ),
+                              ),
+                          ]
+                      ),
+                    ),
                   ),
-                ),
-              ),
                   onRefresh: refreshData
               );
             }),
@@ -1728,7 +1754,16 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
                                         Spacer(),
                                         InkWell(
                                           onTap: (){
-                                            openWhatsAppOrBrowser(item['phoneNumber']);
+                                            if(item['phoneNumber'] != null) {
+                                              openWhatsAppOrBrowser(
+                                                  item['phoneNumber']);
+                                            }else{
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                        'No. Telepon Tidak Ada'),
+                                                  ));
+                                            }
                                           },
                                           child: Image.asset('assets/img/iconWhatsapp.png',
                                             scale: 3.5,
@@ -1752,7 +1787,9 @@ class _riwayatHrdPageState extends State<riwayatHrdPage> {
           ],
         ),
       ),
-    );
+    ), onWillPop: () async {
+      return false;
+    });
   }
 }
 

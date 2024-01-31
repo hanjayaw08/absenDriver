@@ -14,6 +14,8 @@ import 'package:flutter_callkeep/flutter_callkeep.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:uuid/uuid.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -107,6 +109,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: splashScreenPage(),
+      builder: EasyLoading.init(),
     );
   }
 }

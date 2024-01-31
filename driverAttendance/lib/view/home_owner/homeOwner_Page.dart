@@ -11,6 +11,7 @@ import 'package:maps_launcher/maps_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class homeOwnerPage extends StatefulWidget {
   final Function(int) navigateToJanjiTamu;
@@ -51,6 +52,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
   List<Map<String, dynamic>> latestItems = [];
   List<int> absenID = [];
   List<int> ruterID = [];
+  bool isLoading = false;
   String capitalizeFirstLetterOnly(String text) {
     if (text == null || text.isEmpty) {
       return text;
@@ -274,112 +276,137 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
       builder: (BuildContext context) {
         return StatefulBuilder(
             builder: (context, setState) {
-              return SingleChildScrollView(
-                child: Container(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
-                  ),
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
+              return Stack(
+                children: [
+                  SingleChildScrollView(
+                    child: Container(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: <Widget>[
+                          Container(
+                            padding: EdgeInsets.all(16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.max,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Tolak',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    IconButton(
+                                      icon: Icon(Icons.close),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  ],
+                                ),
                                 Text(
-                                  'Alasan',
+                                  'Informasikan alasan',
                                   style: TextStyle(
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w300,
                                     fontSize: 16,
                                   ),
                                 ),
-                                Spacer(),
-                                IconButton(
-                                  icon: Icon(Icons.close),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                            ),
-                            Text(
-                              'Informasikan alasan',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w300,
-                                fontSize: 16,
-                              ),
-                            ),
-                            MyCustomTextField(controller: alasanText, hintText: 'Alasan', buttonColor: Colors.white,),
-                            SizedBox(height: 15,),
-                            Row(
-                              children: [
-                                Container(
-                                  height: 50,
-                                  child: CustomButton(
-                                    onPressed: (){
-                                      Get.back();
-                                    },
-                                    width: 100,
-                                    height: 100,
-                                    text: 'Batal',
-                                    radius: 10,
-                                    cekSpacer: false,
-                                    textColor: Colors.red,
-                                    buttonColor: Colors.white,
-                                    borderColor: Colors.transparent,
-                                  ),
-                                ),
-                                SizedBox(width: 10,),
-                                Expanded(
-                                  child:  Container(
-                                    height: 50,
-                                    child: CustomButton(
-                                      onPressed: (){
-                                        for (var item in detailBbsenData) {
-                                          absenID.add(item['absen_id']);
-                                        }
-                                        for (var item in detailRencanaRute){
-                                          ruterID.add(item['rute_id']);
-                                        }
-                                        runMutationFunctionApprove(absenId: absenID, keterangan: alasanText.text, driverId: idDriver, approve: false, ruteID: ruterID, tanggal: tanggal);
-                                        fetchData1();
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return RoundPopup();
-                                          },
-                                        );
-                                        Future.delayed(Duration(seconds: 3), () {
+                                MyCustomTextField(controller: alasanText, hintText: 'rute', buttonColor: Colors.white,),
+                                SizedBox(height: 15,),
+                                Row(
+                                  children: [
+                                    Container(
+                                      height: 50,
+                                      child: CustomButton(
+                                        onPressed: (){
                                           Get.back();
-                                        });
-                                        ruterID = [];
-                                        absenID = [];
-                                        alasanText.text = '';
-                                        Get.back();
-                                        Get.back();
-                                      },
-                                      width: 100,
-                                      height: 100,
-                                      text: 'Kirim',
-                                      radius: 10,
-                                      cekSpacer: false,
-                                      textColor: Colors.white,
-                                      buttonColor: Color.fromRGBO(14, 137, 145, 1),
+                                        },
+                                        width: 100,
+                                        height: 100,
+                                        text: 'Batal',
+                                        radius: 10,
+                                        cekSpacer: false,
+                                        textColor: Colors.red,
+                                        buttonColor: Colors.white,
+                                        borderColor: Colors.transparent,
+                                      ),
                                     ),
-                                  ),
+                                    SizedBox(width: 10,),
+                                    Expanded(
+                                      child:  Container(
+                                        height: 50,
+                                        child: CustomButton(
+                                          onPressed: (){
+                                            setState(() {
+                                              isLoading = true;
+                                            });
+                                            if (detailApprove.isEmpty){
+                                              for (var item in detailBbsenData) {
+                                                absenID.add(item['absen_id']);
+                                              }
+                                              for (var item in detailRencanaRute){
+                                                ruterID.add(item['rute_id']);
+                                              }
+                                              runMutationFunctionApprove(absenId: absenID, keterangan: alasanText.text, driverId: idDriver, approve: false, ruteID: ruterID, tanggal: tanggal).then((value) {
+                                                ruterID = [];
+                                                absenID = [];
+                                                alasanText.text = '';
+                                                setState(() {
+                                                  isLoading = false;
+                                                });
+                                                fetchData1();
+                                                Get.back();
+                                              });
+                                            }
+                                            else{
+                                              for (var item in detailApprove){
+                                                updateApprove(Id: item['id'], keterangan: alasanText.text, approve: false).then((value) {
+                                                  ruterID = [];
+                                                  absenID = [];
+                                                  alasanText.text = '';
+                                                  setState(() {
+                                                    isLoading = false;
+                                                  });
+                                                  fetchData1();
+                                                });
+                                              }
+                                              Get.back();
+                                              Get.back();
+                                            }
+                                          },
+                                          width: 100,
+                                          height: 100,
+                                          text: 'Kirim',
+                                          radius: 10,
+                                          cekSpacer: false,
+                                          textColor: Colors.white,
+                                          buttonColor: Color.fromRGBO(14, 137, 145, 1),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                  if (isLoading)
+                    Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                ],
               );
             }
         );
@@ -409,7 +436,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
     }
   }
 
-  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal, String driverId, bool cekApprove, String namaOwner) {
+  void showDetailAbsensiModal(BuildContext context, bool cekKosong, String tanggal, String driverId, bool cekStatus, String namaOwner) {
     final screenSize = MediaQuery.of(context).size;
     showModalBottomSheet(
       context: context,
@@ -419,449 +446,510 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
           heightFactor: 1.0, // Modal mengisi seluruh tinggi layar
           widthFactor: 1.0, // Modal mengisi seluruh lebar layar
           child: Container(
-            padding: EdgeInsets.all(20.0),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              padding: EdgeInsets.all(20.0),
+              child: Stack(
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Detail absensi',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Spacer(),
-                      IconButton(
-                        icon: Icon(Icons.close),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 15,),
-                  Text(
-                    DateFormat('EEEE, d MMM y', 'id').format(DateTime.parse(tanggal)),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                  SizedBox(height: 15,),
-                  if (cekKosong == true)
-                    Column(
+                  SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (detailJadwalKerja.isNotEmpty)
-                          for(var item in detailJadwalKerja)
-                            Column(
+                        SizedBox(height: 15,),
+                        Row(
+                          children: [
+                            Text(
+                              'Detail absensi',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Spacer(),
+                            IconButton(
+                              icon: Icon(Icons.close),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 15,),
+                        Text(
+                          DateFormat('EEEE, d MMM y', 'id').format(DateTime.parse(tanggal)),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 15,),
+                        if (cekKosong == true)
+                          Column(
                             children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                  color: Color.fromRGBO(218, 218, 218, 1),
-                                  border: Border.all(
-                                    color: Colors.black, // Warna border yang diinginkan
-                                    width: 1.0, // Ketebalan border
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                              if (detailJadwalKerja.isNotEmpty)
+                                for(var item in detailJadwalKerja)
+                                  Column(
                                     children: [
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                          color: Color.fromRGBO(218, 218, 218, 1),
+                                          border: Border.all(
+                                            color: Colors.black, // Warna border yang diinginkan
+                                            width: 1.0, // Ketebalan border
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
                                             children: [
-                                              Text('Ditugaskan ke',
-                                                style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold
-                                                ),
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Text('Ditugaskan ke',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Container(
+                                                    width: screenSize.width * 0.6,
+                                                    child: Wrap(
+                                                      children: [
+                                                        Icon(Icons.arrow_right_sharp),
+                                                        Text(item['owner']['displayName'] ?? '',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.bold
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                ],
                                               ),
+
+                                              Spacer(),
+
+                                              if (cekStatus == true)
+                                                Icon(
+                                                  Icons.check,
+                                                  color: Colors.green,
+                                                )
+                                              else
+                                                Icon(
+                                                  Icons.close,
+                                                  color: Colors.red,
+                                                ),
                                             ],
                                           ),
-                                          Row(
-                                            children: [
-                                              Icon(Icons.arrow_right_sharp),
-                                              Text(item['owner']['displayName'] ?? '',
-                                                style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        ],
-                                      ),
-
-                                      Spacer(),
-
-                                      if (cekApprove == true)
-                                        Icon(
-                                          Icons.check,
-                                          color: Colors.green,
-                                        )
-                                      else
-                                        Icon(
-                                          Icons.close,
-                                          color: Colors.red,
                                         ),
+                                      ),
+                                      SizedBox(height: 15,)
                                     ],
                                   ),
-                                ),
-                              ),
-                              SizedBox(height: 15,)
-                            ],
-                          ),
-                        if (detailBbsenData.isNotEmpty)
-                          for(var item in detailBbsenData)
-                            Column(
-                              children: [
-                                InkWell(
-                                  onTap: (){
-                                    MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                      color: Color.fromRGBO(218, 218, 218, 1),
-                                      border: Border.all(
-                                        color: Colors.black, // Warna border yang diinginkan
-                                        width: 1.0, // Ketebalan border
-                                      ),
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          if (item['jenis'] == "DATANG")
-                                            Icon(
-                                              Icons.login,
-                                              color: Colors.green,
-                                            )
-                                          else
-                                            Icon(
-                                              Icons.logout,
-                                              color: Colors.red,
-                                            ),
-
-                                          SizedBox(width: 10,),
-
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                              for(var item in detailBbsenData)
+                                Column(
+                                  children: [
+                                    InkWell(
+                                      onTap: (){
+                                        MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));
+                                      },
+                                      child:  Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                          color: Color.fromRGBO(218, 218, 218, 1),
+                                          border: Border.all(
+                                            color: Colors.black, // Warna border yang diinginkan
+                                            width: 1.0, // Ketebalan border
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
                                             children: [
-                                              Text('Absensi ${item['jenis'] == 'KELUAR' ? 'Pulang Lebih Awal' : capitalizeFirstLetterOnly(item['jenis'])}',
-                                                style: TextStyle(
-                                                  fontSize: 16,
+                                              if (item['jenis'] == "DATANG")
+                                                Icon(
+                                                  Icons.login,
+                                                  color: Colors.green,
+                                                )
+                                              else
+                                                Icon(
+                                                  Icons.logout,
+                                                  color: Colors.red,
                                                 ),
-                                              ),
-                                              Row(
+
+                                              SizedBox(width: 10,),
+
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  Text(item['jam'],
+                                                  Text('Absensi ${item['jenis'] == 'KELUAR' ? 'Pulang Lebih Awal' : capitalizeFirstLetterOnly(item['jenis'])}',
                                                     style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold
+                                                      fontSize: 16,
                                                     ),
                                                   ),
-                                                  if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
-                                                    Row(
+                                                  Container(
+                                                    width: screenSize.width * 0.6,
+                                                    child: Wrap(
                                                       children: [
-                                                        Icon(Icons.arrow_right),
-                                                        Text(item['keterangan'] ?? '')
+                                                        Text(item['jam'],
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.bold
+                                                          ),
+                                                        ),
+                                                        if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
+                                                          Wrap(
+                                                            children: [
+                                                              Icon(Icons.arrow_right),
+                                                              Text(item['keterangan'] ?? '')
+                                                            ],
+                                                          )
                                                       ],
-                                                    )
-                                                ],
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Text(item['latitude'] ?? '',
-                                                    style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold
                                                     ),
                                                   ),
-                                                  Row(
-                                                    children: [
-                                                      Icon(Icons.arrow_right),
-                                                      Text(item['longitude'] ?? '',
-                                                        style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight: FontWeight.bold
+                                                  Container(
+                                                    width: screenSize.width * 0.6,
+                                                    child: Wrap(
+                                                      children: [
+                                                        Text(item['latitude'] ?? '',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.bold
+                                                          ),
                                                         ),
-                                                      )
-                                                    ],
-                                                  )
+                                                        Wrap(
+                                                          children: [
+                                                            Icon(Icons.arrow_right),
+                                                            Text(item['longitude'] ?? '',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontWeight: FontWeight.bold
+                                                              ),
+                                                            )
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  if(item['jenis' ]== 'SAKIT')
+                                                    TextButton(
+                                                        onPressed: (){
+                                                          print(item['files']);
+                                                          getPresignedUrl('${item['files']}');
+                                                        }, child: Text('Open Image'))
                                                 ],
                                               ),
-                                              if(item['jenis' ]== 'SAKIT')
-                                                TextButton(
-                                                    onPressed: (){
-                                                      print(item['files']);
-                                                      Get.back();
-                                                      getPresignedUrl('${item['files']}');
-                                                    }, child: Text('Open Image'))
-                                            ],
-                                          ),
 
-                                          Spacer(),
+                                              Spacer(),
 
-                                          if (cekApprove == true)
-                                            Icon(
-                                              Icons.check,
-                                              color: Colors.green,
-                                            )
-                                          else
-                                            Icon(
-                                              Icons.close,
-                                              color: Colors.red,
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 15,),
-                              ],
-                            ),
-                        if (detailRencanaRute.isNotEmpty)
-                          for(var item in detailRencanaRute)
-                            Column(
-                              children: [
-                                InkWell(
-                                  onTap: (){
-                                    MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));
-                                  },
-                                  child:  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                      color: Color.fromRGBO(218, 218, 218, 1),
-                                      border: Border.all(
-                                        color: Colors.black, // Warna border yang diinginkan
-                                        width: 1.0, // Ketebalan border
-                                      ),
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.place,
-                                            color: Colors.green,
-                                          ),
-
-                                          SizedBox(width: 10,),
-
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text('Rencana Rute',
-                                                style: TextStyle(
-                                                  fontSize: 16,
+                                              if (cekStatus == true)
+                                                Icon(
+                                                  Icons.check,
+                                                  color: Colors.green,
+                                                )
+                                              else
+                                                Icon(
+                                                  Icons.close,
+                                                  color: Colors.red,
                                                 ),
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Text(item['jam_mulai'],
-                                                    style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold
-                                                    ),
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Icon(Icons.arrow_right),
-                                                      Text(item['keterangan'] ?? '')
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Text(item['latitude'] ?? '',
-                                                    style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold
-                                                    ),
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Icon(Icons.arrow_right),
-                                                      Text(item['longitude'] ?? '',
-                                                        style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight: FontWeight.bold
-                                                        ),
-                                                      )
-                                                    ],
-                                                  )
-                                                ],
-                                              )
                                             ],
                                           ),
-
-                                          Spacer(),
-
-                                          if (cekApprove == true)
-                                            Icon(
-                                              Icons.check,
-                                              color: Colors.green,
-                                            )
-                                          else
-                                            Icon(
-                                              Icons.close,
-                                              color: Colors.red,
-                                            ),
-                                        ],
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                    SizedBox(height: 15,),
+                                  ],
                                 ),
-                                SizedBox(height: 15,),
-                              ],
-                            ),
-                        if (detailApprove.isNotEmpty)
-                          for(var item in detailApprove)
-                            if (item['approve'] == false)
-                              Column(
+                              for(var item in detailRencanaRute)
+                                Column(
+                                  children: [
+                                    InkWell(
+                                      onTap: (){
+                                        MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                          color: Color.fromRGBO(218, 218, 218, 1),
+                                          border: Border.all(
+                                            color: Colors.black, // Warna border yang diinginkan
+                                            width: 1.0, // Ketebalan border
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.place,
+                                                color: Colors.green,
+                                              ),
+
+                                              SizedBox(width: 10,),
+
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text('Rencana Rute',
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    width: screenSize.width * 0.6,
+                                                    child: Wrap(
+                                                      children: [
+                                                        Text(item['jam_mulai'],
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.bold
+                                                          ),
+                                                        ),
+                                                        Wrap(
+                                                          children: [
+                                                            Icon(Icons.arrow_right),
+                                                            Text(item['keterangan'] ?? '')
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    width: screenSize.width * 0.6,
+                                                    child:  Wrap(
+                                                      children: [
+                                                        Text(item['latitude'] ?? '',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.bold
+                                                          ),
+                                                        ),
+                                                        Wrap(
+                                                          children: [
+                                                            Icon(Icons.arrow_right),
+                                                            Text(item['longitude'] ?? '',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontWeight: FontWeight.bold
+                                                              ),
+                                                            )
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+
+                                              Spacer(),
+
+                                              if (cekStatus == true)
+                                                Icon(
+                                                  Icons.check,
+                                                  color: Colors.green,
+                                                )
+                                              else
+                                                Icon(
+                                                  Icons.close,
+                                                  color: Colors.red,
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 15,),
+                                  ],
+                                ),
+                              for(var item in detailApprove)
+                                if (item['approve'] == false || item['approve'] == null)
+                                  Column(
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                          color: Color.fromRGBO(218, 218, 218, 1),
+                                          border: Border.all(
+                                            color: Colors.black, // Warna border yang diinginkan
+                                            width: 1.0, // Ketebalan border
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.place,
+                                                color: Colors.green,
+                                              ),
+
+                                              SizedBox(width: 10,),
+
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text('Keterangan',
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    width: screenSize.width * 0.6,
+                                                    child: Wrap(
+                                                      children: [
+                                                        Text(
+                                                          item['reject_reason'] == null ? '' : item['reject_reason'],
+                                                          style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+
+                                              Spacer(),
+
+                                              if (cekStatus == true)
+                                                Icon(
+                                                  Icons.check,
+                                                  color: Colors.green,
+                                                )
+                                              else
+                                                Icon(
+                                                  Icons.close,
+                                                  color: Colors.red,
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 15,),
+                                    ],
+                                  ),
+                              if(detailApprove.isNotEmpty)
+                                Text('Laporan telah di Approve pada ${detailApprove[0]['tanggal']}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              if (detailApprove.isEmpty || detailApprove[0]['approve'] == false)
+                                Row(
                                 children: [
+                                    Expanded(
+                                      child:  Container(
+                                        height: 50,
+                                        child: CustomButton(
+                                          onPressed: (){
+                                            if(detailApprove.isEmpty){
+                                              setState(() {
+                                                isLoading = true;
+                                                EasyLoading.show();
+                                              });
+                                              for (var item in detailBbsenData) {
+                                                absenID.add(item['absen_id']);
+                                              }
+                                              for (var item in detailRencanaRute){
+                                                ruterID.add(item['rute_id']);
+                                              }
+                                              runMutationFunctionApprove(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal).then((value) {
+                                                fetchData1();
+                                                ruterID = [];
+                                                absenID = [];
+                                                setState(() {
+                                                  isLoading = false;
+                                                  EasyLoading.dismiss();
+                                                });
+                                                setState(() {
+                                                  fetchData1();
+                                                });
+                                                Get.back();
+                                              });
+                                            }else{
+                                              setState(() {
+                                                isLoading = true;
+                                              });
+                                              for (var item in detailApprove){
+                                                updateApprove(Id: item['id'], keterangan: alasanText.text, approve: true).then((value) {
+                                                  fetchData1();
+                                                  setState(() {
+                                                    isLoading = false;
+                                                  });
+                                                  setState(() {
+                                                    fetchData1();
+                                                  });
+                                                });
+                                              }
+                                              Get.back();
+                                            }
+                                          },
+                                          width: 100,
+                                          height: 100,
+                                          text: 'Approve',
+                                          radius: 10,
+                                          cekSpacer: false,
+                                          textColor: Colors.white,
+                                          buttonColor: Color.fromRGBO(14, 137, 145, 1),
+                                        ),
+                                      ),
+                                    ),
+                                  SizedBox(width: 10,),
                                   Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                      color: Color.fromRGBO(218, 218, 218, 1),
-                                      border: Border.all(
-                                        color: Colors.black, // Warna border yang diinginkan
-                                        width: 1.0, // Ketebalan border
-                                      ),
+                                    height: 50,
+                                    child: CustomButton(
+                                      onPressed: (){
+                                        showTolakApproval(context, driverId, tanggal);
+                                      },
+                                      width: 100,
+                                      height: 100,
+                                      text: 'Tolak',
+                                      radius: 10,
+                                      cekSpacer: false,
+                                      textColor: Color.fromRGBO(14, 137, 145, 1),
+                                      buttonColor: Colors.white,
+                                      borderColor: Color.fromRGBO(14, 137, 145, 1),
                                     ),
-                                    child: Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.place,
-                                            color: Colors.green,
-                                          ),
-
-                                          SizedBox(width: 10,),
-
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text('Keterangan',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                              Text(
-                                                item['reject_reason'] == null ? '' : item['reject_reason'],
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 15,),
+                                  )
                                 ],
                               ),
+                            ],
+                          ),
+                        if (cekKosong == false)
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(height: screenSize.height * 0.25,),
+                              Image.asset('assets/img/BeepBeepUFO.png',
+                                scale: 3,
+                              ),
+                              Text('Tidak ada kegiatan absensi terekam')
+                            ],
+                          ),
                       ],
                     ),
-                  if (cekKosong == false)
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(height: screenSize.height * 0.25,),
-                        Image.asset('assets/img/BeepBeepUFO.png',
-                          scale: 3,
-                        ),
-                        Text('Tidak ada kegiatan absensi terekam')
-                      ],
-                    ),
-                  // if (cekApprove == false && cekKosong == true)
-                  //   Row(
-                  //     children: [
-                  //       if(detailApprove.isEmpty)
-                  //         Expanded(
-                  //         child:  Container(
-                  //           height: 50,
-                  //           child: CustomButton(
-                  //             onPressed: (){
-                  //               for (var item in detailBbsenData) {
-                  //                 absenID.add(item['absen_id']);
-                  //               }
-                  //               for (var item in detailRencanaRute){
-                  //                 ruterID.add(item['rute_id']);
-                  //               }
-                  //               runMutationFunctionApprove(absenId: absenID, keterangan: 'oke', driverId: driverId, approve: true, ruteID: ruterID, tanggal: tanggal);
-                  //               fetchData1();
-                  //               showDialog(
-                  //                 context: context,
-                  //                 builder: (BuildContext context) {
-                  //                   return RoundPopup();
-                  //                 },
-                  //               );
-                  //               Future.delayed(Duration(seconds: 3), () {
-                  //                 Get.back();
-                  //                 Get.back();
-                  //               });
-                  //               ruterID = [];
-                  //               absenID = [];
-                  //               // print(item['absen_id']);
-                  //             },
-                  //             width: 100,
-                  //             height: 100,
-                  //             text: 'Approverd',
-                  //             radius: 10,
-                  //             cekSpacer: false,
-                  //             textColor: Colors.white,
-                  //             buttonColor: Color.fromRGBO(14, 137, 145, 1),
-                  //           ),
-                  //         ),
-                  //       ),
-                  //       SizedBox(width: 10,),
-                  //       if(detailApprove.isEmpty)
-                  //        Container(
-                  //         height: 50,
-                  //         child: CustomButton(
-                  //           onPressed: (){
-                  //             showTolakApproval(context, driverId, tanggal);
-                  //           },
-                  //           width: 100,
-                  //           height: 100,
-                  //           text: 'Tolak',
-                  //           radius: 10,
-                  //           cekSpacer: false,
-                  //           textColor: Color.fromRGBO(14, 137, 145, 1),
-                  //           buttonColor: Colors.white,
-                  //           borderColor: Color.fromRGBO(14, 137, 145, 1),
-                  //         ),
-                  //       )
-                  //     ],
-                  //   ),
-                  if (cekApprove == true)
-                    Text('Laporan telah di Approve pada ${detailApprove[0]['tanggal']}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w300,
+                  ),
+                  if (isLoading)
+                    Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: Center(
+                        child: CircularProgressIndicator(),
                       ),
-                      textAlign: TextAlign.center,
                     ),
                 ],
-              ),
-            ),
+              )
           ),
         );
       },
@@ -906,7 +994,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
     }
   }
 
-  void runMutationFunctionApprove({
+  Future<void> runMutationFunctionApprove({
     required List<int> absenId,
     required String keterangan,
     required String driverId,
@@ -933,6 +1021,43 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
     id
   }
 }
+    '''),
+    );
+
+    final QueryResult result = await client.mutate(options);
+
+    if (result.hasException) {
+      print('Mutation error: ${result.exception.toString()}');
+    } else {
+      print('Mutation successful: ${result.data}');
+    }
+  }
+
+  Future<void> updateApprove({
+    required int Id,
+    required String keterangan,
+    required bool approve
+  }) async {
+    final HttpLink httpLink = HttpLink(
+      'http://45.64.3.54:40380/absendriver-api/v1/graphql',
+      defaultHeaders: {
+        'Authorization': 'Bearer ${widget.tokenDriver}', // Ganti dengan token autentikasi Anda
+      },
+    );
+
+    final GraphQLClient client = GraphQLClient(
+      link: httpLink,
+      cache: GraphQLCache(),
+    );
+
+    final MutationOptions options = MutationOptions(
+      document: gql('''
+     mutation MyMutation {
+  update_approval_by_pk(pk_columns: {id: "$Id"}, _set: {approve: "$approve", reject_reason: "$keterangan"}) {
+    id
+  }
+}
+
     '''),
     );
 
@@ -1100,6 +1225,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
     approve
     reject_reason
     tanggal
+    id
   }
   
   jadwal_driver(where: {tanggal: {_eq: "$tanggal"}, _and: {driver_id: {_eq: "$idDriver"}}}) {
@@ -1169,11 +1295,23 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
         return presignedUrl;
       } else {
         print('Failed to get presigned URL. Status code: ${response.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Foto tidak ada'),
-            ));
+        showDialog(
+          context: context, // pastikan ada parameter context
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('Foto tidak ada'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // tutup dialog saat tombol ditekan
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
         return null;
       }
     } catch (error) {
@@ -1272,8 +1410,8 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
                               Spacer(),
                               CustomTextButton(
                                 onPressed: () {
-                                  // widget.navigateToJanjiTamu(1);
-                                  fetchData1();
+                                  widget.navigateToJanjiTamu(1);
+                                  // fetchData1();
                                 },
                                 text: 'Lihat Semua',
                               )

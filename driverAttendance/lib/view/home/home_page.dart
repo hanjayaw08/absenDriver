@@ -5,6 +5,7 @@ import 'package:driverattendance/component/textButton.dart';
 import 'package:driverattendance/component/textField.dart';
 import 'package:driverattendance/linkUtama_server.dart';
 import 'package:driverattendance/main.dart';
+import 'package:driverattendance/view/home/splashScreen_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:get/get.dart';
@@ -25,6 +26,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 
 class homePage extends StatefulWidget {
@@ -51,6 +57,7 @@ class _homePageState extends State<homePage> {
   late String formattedDate;
   late String currentTime;
   late String realTime;
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   String capitalizeFirstLetterOnly(String text) {
     if (text == null || text.isEmpty) {
       return text;
@@ -81,7 +88,7 @@ class _homePageState extends State<homePage> {
   double PositionLongitude = 0;
   bool absen = false;
   String idImage = '';
-
+  bool isLoding = false;
   //function untuk absen
 
   @override
@@ -643,7 +650,7 @@ class _homePageState extends State<homePage> {
                         buttonColor: Colors.white,
                         borderColor: Colors.transparent,
                       ),
-                    ), 
+                    ),
                     SizedBox(width: 10,),
                         Expanded(
                         child:  Container(
@@ -692,6 +699,7 @@ class _homePageState extends State<homePage> {
                                     });
                                   }else{
                                     print('sakit');
+                                    Get.back();
                                     Get.back();
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
@@ -946,48 +954,36 @@ class _homePageState extends State<homePage> {
                           child: CustomButton(
                             onPressed: (){
                               if (absensi.isEmpty && absen == true){
-                                fetchAbsensi(DateFormat('yyyy-MM-dd').format(DateTime.now()), 'KELUAR').then((value){
-                                  if(absensi.isEmpty){
-                                  runMutationFunction(
-                                      jam: realTime,
-                                      tanggal: formattedDate,
-                                      jenis: "PULANG",
-                                      keterangan: "",
-                                      imagesId: ""
-                                  );
-                                  setState(() {
-                                    fetchData1();
-                                  });
-                                  setState(() {
-                                    // Lakukan sesuatu setelah setState selesai
-                                    fetchData1();
-                                    // Update UI atau lakukan aksi lainnya jika diperlukan
-                                  });
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return RoundPopup();
-                                    },
-                                  );
-                                  setState(() {
-                                    // Lakukan sesuatu setelah setState selesai
-                                    fetchData1();
-                                    // Update UI atau lakukan aksi lainnya jika diperlukan
-                                  });
-                                  Future.delayed(Duration(seconds: 1), () {
-                                    Navigator.pop(context);
-                                    Navigator.pop(context);
-                                    Navigator.pop(context);
-                                  });
-                                }else{
-                                    Get.back();
-                                    Get.back();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'Anda Sudah Melakukan Ijin Pulang'),
-                                        ));
-                                  }
+                                runMutationFunction(
+                                    jam: realTime,
+                                    tanggal: formattedDate,
+                                    jenis: "PULANG",
+                                    keterangan: "",
+                                    imagesId: ""
+                                );
+                                setState(() {
+                                  fetchData1();
+                                });
+                                setState(() {
+                                  // Lakukan sesuatu setelah setState selesai
+                                  fetchData1();
+                                  // Update UI atau lakukan aksi lainnya jika diperlukan
+                                });
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return RoundPopup();
+                                  },
+                                );
+                                setState(() {
+                                  // Lakukan sesuatu setelah setState selesai
+                                  fetchData1();
+                                  // Update UI atau lakukan aksi lainnya jika diperlukan
+                                });
+                                Future.delayed(Duration(seconds: 1), () {
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
                                 });
                               }
                               if (absensi.isNotEmpty) {
@@ -1104,26 +1100,36 @@ class _homePageState extends State<homePage> {
                               cekKosong.value = true;
                             }
                             if (absensi.isEmpty && alasanText.text != '') {
-                              runMutationFunction(
-                                  jam: realTime,
-                                  tanggal: formattedDate,
-                                  jenis: "KELUAR",
-                                  keterangan: alasanText.text,
-                                 imagesId: ""
-                              );
-                              setState(() {
-                                fetchData1();
-                              });
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return RoundPopup();
-                                },
-                              );
-                              Future.delayed(Duration(seconds: 1), () {
-                                Navigator.pop(context);
-                                Navigator.pop(context);
-                                Navigator.pop(context);
+                              fetchAbsensi(DateFormat('yyyy-MM-dd').format(DateTime.now()), 'PULANG').then((value){
+                                if(absensi.isEmpty){
+                                  runMutationFunction(
+                                      jam: realTime,
+                                      tanggal: formattedDate,
+                                      jenis: "KELUAR",
+                                      keterangan: alasanText.text,
+                                      imagesId: ""
+                                  );
+                                  setState(() {
+                                    fetchData1();
+                                  });
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return RoundPopup();
+                                    },
+                                  );
+                                  Future.delayed(Duration(seconds: 1), () {
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
+                                  });
+                                }else{
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                    content: Text('Anda sudah melakukan absen pulang hari ini'),
+                                  ));
+                                  Navigator.pop(context);
+                                  Get.back();
+                                }
                               });
                             }
                             if (absensi.isNotEmpty) {
@@ -1205,7 +1211,7 @@ class _homePageState extends State<homePage> {
       isScrollControlled: true, // Atur isScrollControlled ke true agar modal dapat di-scroll
       builder: (BuildContext context) {
         return FractionallySizedBox(
-          heightFactor: 1.0, // Modal mengisi seluruh tinggi layar
+          heightFactor: 1.0,
           widthFactor: 1.0, // Modal mengisi seluruh lebar layar
           child: Container(
             padding: EdgeInsets.all(20.0),
@@ -1236,7 +1242,7 @@ class _homePageState extends State<homePage> {
                   ),
                   SizedBox(height: 15,),
                   Text(
-                     "${ DateFormat('EEEE, d MMM y', 'id').format(DateTime.parse(tanggal))}",
+                    "${ DateFormat('EEEE, d MMM y', 'id').format(DateTime.parse(tanggal))}",
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
@@ -1276,16 +1282,19 @@ class _homePageState extends State<homePage> {
                                               ),
                                             ],
                                           ),
-                                          Row(
-                                            children: [
-                                              Icon(Icons.arrow_right_sharp),
-                                              Text(item['owner']['displayName'] ?? '',
-                                                style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold
+                                          Container(
+                                            width: screenSize.width * 0.6,
+                                            child: Wrap(
+                                              children: [
+                                                Icon(Icons.arrow_right_sharp),
+                                                Text(item['owner']['displayName'] ?? '',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           )
                                         ],
                                       ),
@@ -1316,112 +1325,115 @@ class _homePageState extends State<homePage> {
                               InkWell(
                                 onTap: (){MapsLauncher.launchCoordinates(double.parse(item['latitude']), double.parse(item['longitude']));},
                                 child:  Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                                  color: Color.fromRGBO(218, 218, 218, 1),
-                                  border: Border.all(
-                                    color: Colors.black, // Warna border yang diinginkan
-                                    width: 1.0, // Ketebalan border
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                    color: Color.fromRGBO(218, 218, 218, 1),
+                                    border: Border.all(
+                                      color: Colors.black, // Warna border yang diinginkan
+                                      width: 1.0, // Ketebalan border
+                                    ),
                                   ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      if (item['jenis'] == "DATANG")
-                                        Icon(
-                                          Icons.login,
-                                          color: Colors.green,
-                                        )
-                                      else
-                                        Icon(
-                                          Icons.logout,
-                                          color: Colors.red,
-                                        ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        if (item['jenis'] == "DATANG")
+                                          Icon(
+                                            Icons.login,
+                                            color: Colors.green,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.logout,
+                                            color: Colors.red,
+                                          ),
 
-                                      SizedBox(width: 10,),
+                                        SizedBox(width: 10,),
 
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Absensi ${item['jenis'] == 'KELUAR' ? 'Pulang Lebih Awal' : capitalizeFirstLetterOnly(item['jenis'])}',
-                                            style: TextStyle(
-                                              fontSize: 16,
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('Absensi ${item['jenis'] == 'KELUAR' ? 'Pulang Lebih Awal' : capitalizeFirstLetterOnly(item['jenis'])}',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                              ),
                                             ),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Text(item['jam'],
-                                                style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold
-                                                ),
-                                              ),
-                                              if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['keterangan'] ?? '')
-                                                  ],
-                                                )
-                                            ],
-                                          ),
-                                          Row(
-                                            children: [
-                                              Text(item['latitude'] ?? '',
-                                                style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold
-                                                ),
-                                              ),
-                                              Row(
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child: Wrap(
                                                 children: [
-                                                  Icon(Icons.arrow_right),
-                                                  Text(item['longitude'] ?? '',
+                                                  Text(item['jam'],
                                                     style: TextStyle(
                                                         fontSize: 16,
                                                         fontWeight: FontWeight.bold
                                                     ),
-                                                  )
+                                                  ),
+                                                  if (item['jenis'] != "DATANG" && item['jenis'] != "PULANG")
+                                                    Wrap(
+                                                      children: [
+                                                        Icon(Icons.arrow_right),
+                                                        Text(item['keterangan'] ?? '')
+                                                      ],
+                                                    )
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child:  Wrap(
+                                                children: [
+                                                  Text(
+                                                    item['latitude'] ?? '',
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  Icon(Icons.arrow_right),
+                                                  Text(
+                                                    item['longitude'] ?? '',
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            if(item['jenis'] == "SAKIT")
+                                              Row(
+                                                children: [
+                                                  TextButton(
+                                                        onPressed: () async {
+                                                          _takePictureAndUpload(item['id'].toString());
+                                                        }, child: Text('Upload Image')),
+                                                  TextButton(
+                                                      onPressed: (){
+                                                        print(item['files']);
+                                                        getPresignedUrl('${item['files']}');
+                                                      }, child: Text('Open Image'))
                                                 ],
                                               )
-                                            ],
-                                          ),
-                                          if(item['jenis'] == "SAKIT")
-                                           Row(
-                                             children: [
-                                               TextButton(
-                                                   onPressed: (){
-                                                     _takePictureAndUpload(item['id'].toString());
-                                                   }, child: Text('Upload Image')),
-                                               TextButton(
-                                                   onPressed: (){
-                                                     print(item['files']);
-                                                     Get.back();
-                                                     getPresignedUrl('${item['files']}');
-                                                   }, child: Text('Open Image'))
-                                             ],
-                                           )
-                                        ],
-                                      ),
-
-                                      Spacer(),
-
-                                      if (detailApprove[0]['has_approve'] == true)
-                                        Icon(
-                                          Icons.check,
-                                          color: Colors.green,
-                                        )
-                                      else
-                                        Icon(
-                                          Icons.close,
-                                          color: Colors.red,
+                                          ],
                                         ),
-                                    ],
+
+                                        Spacer(),
+
+                                        if (detailApprove[0]['has_approve'] == true)
+                                          Icon(
+                                            Icons.check,
+                                            color: Colors.green,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.close,
+                                            color: Colors.red,
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ),),
+                                ),),
                               SizedBox(height: 15,),
                             ],
                           ),
@@ -1461,43 +1473,43 @@ class _homePageState extends State<homePage> {
                                                 fontSize: 16,
                                               ),
                                             ),
-                                            Row(
-                                              children: [
-                                                Text(item['jam_mulai'],
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child: Wrap(
+                                                children: [
+                                                  Text(item['jam_mulai'],
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
                                                   ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['keterangan'] ?? '')
-                                                  ],
-                                                )
-                                              ],
+                                                  Icon(Icons.arrow_right),
+                                                  Text(item['keterangan'] ?? '')
+                                                ],
+                                              ),
                                             ),
-                                            Row(
-                                              children: [
-                                                Text(item['latitude'] ?? '',
-                                                  style: TextStyle(
+                                            Container(
+                                              width: screenSize.width * 0.6,
+                                              child:  Wrap(
+                                                children: [
+                                                  Text(
+                                                    item['latitude'] ?? '',
+                                                    style: TextStyle(
                                                       fontSize: 16,
-                                                      fontWeight: FontWeight.bold
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
                                                   ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.arrow_right),
-                                                    Text(item['longitude'] ?? '',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold
-                                                      ),
-                                                    )
-                                                  ],
-                                                )
-                                              ],
-                                            )
+                                                  Icon(Icons.arrow_right),
+                                                  Text(
+                                                    item['longitude'] ?? '',
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ],
                                         ),
 
@@ -1526,8 +1538,8 @@ class _homePageState extends State<homePage> {
                   if (detailApprove[0]['has_approve'] == true)
                     Text('Laporan telah di Approve pada ${detailApprove[0]['tanggal']}',
                       style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w300,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w300,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -1855,32 +1867,116 @@ query MyQuery {
     await fetchData1();
   }
 
+  // Future<void> _getLocation() async {
+  //   try {
+  //     Position position = await Geolocator.getCurrentPosition(
+  //       desiredAccuracy: LocationAccuracy.high,
+  //       forceAndroidLocationManager: true,
+  //     );
+  //
+  //     double distanceInMeters = await Geolocator.distanceBetween(
+  //       position.latitude,
+  //       position.longitude,
+  //       -7.291266, 112.740890
+  //     );
+  //     PositionLatitude = position.latitude;
+  //     PositionLongitude = position.longitude;
+  //     if (distanceInMeters <= 25) {
+  //       setState(() {
+  //         PositionLatitude = position.latitude;
+  //         PositionLongitude = position.longitude;
+  //         absen = true;
+  //       });
+  //     } else {
+  //       setState(() {
+  //          print('kejauhan');
+  //          absen = false;
+  //       });
+  //     }
+  //     print(PositionLatitude);
+  //     print(PositionLongitude);
+  //   } catch (e) {
+  //     print('Error: $e');
+  //   }
+  // }
+
   Future<void> _getLocation() async {
+    final double maxSpeed = 10; // Sesuaikan dengan kecepatan maksimal yang dianggap wajar
+    bool isUsingFakeGPS = false;
+
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
+        forceAndroidLocationManager: true,
       );
-      double distanceInMeters = await Geolocator.distanceBetween(
-        position.latitude,
-        position.longitude,
-        -7.291266, 112.740890
-      );
-      PositionLatitude = position.latitude;
-      PositionLongitude = position.longitude;
-      if (distanceInMeters <= 250000000) {
+
+      // Mengecek kecepatan
+      double speedInMps = position.speed ?? 0;
+      if (speedInMps > maxSpeed) {
         setState(() {
-          PositionLatitude = position.latitude;
-          PositionLongitude = position.longitude;
-          absen = true;
+          isUsingFakeGPS = true;
         });
       } else {
         setState(() {
-           print('kejauhan');
-           absen = false;
+          isUsingFakeGPS = false;
         });
+
+        // Lanjutkan pengecekan jarak dan tindakan lainnya jika perlu
+        double distanceInMeters = await Geolocator.distanceBetween(
+          position.latitude,
+          position.longitude,
+          -7.291266,
+          112.740890,
+        );
+
+        setState(() {
+          PositionLatitude = position.latitude;
+          PositionLongitude = position.longitude;
+          absen = distanceInMeters <= 25;
+        });
+
+        if (distanceInMeters <= 25) {
+          print('Absen berhasil, jarak: $distanceInMeters meter');
+          if(isUsingFakeGPS == false){
+             showDialog(
+              context: context,
+               barrierDismissible: false,
+               builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Peringatan'),
+                  content: Text('Terdeteksi penggunaan GPS palsu!'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () async {
+                        await EasyLoading.isShow;
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.remove('email');
+                        await prefs.remove('password');
+                        EasyLoading.isShow;
+                        await nhost.auth.signOut();
+                        await AwesomeNotifications().cancelAll();
+                        await _firebaseMessaging.deleteToken();
+                        EasyLoading.dismiss();
+                        await EasyLoading.dismiss();
+                        Get.offAll(splashScreenPage());
+                      },
+                      child: Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+          }else{
+            absen = true;
+          }
+        } else {
+          print('Terlalu jauh, jarak: $distanceInMeters meter');
+          absen = false;
+        }
       }
-      print(PositionLatitude);
-      print(PositionLongitude);
+
+      print('Position Latitude: ${position.latitude}');
+      print('Position Longitude: ${position.longitude}');
     } catch (e) {
       print('Error: $e');
     }
@@ -1904,8 +2000,12 @@ query MyQuery {
   }
 
   Future<void> uploadImage(String imagePath, String id) async {
+    EasyLoading.show();
     try {
       // Membaca isi file ke dalam byte array
+      setState(() {
+        isLoding = true;
+      });
       List<int> bytes = await File(imagePath).readAsBytes();
 
       // Upload gambar ke penyimpanan Nhost
@@ -1924,14 +2024,48 @@ query MyQuery {
       setState(() {
         idImage = fileMetadata.id;
       });
+      setState(() {
+        isLoding = false;
+      });
       runMutationFunctionImage(id: id, fileId: fileMetadata.id);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Gagal menggunggah'),
-          ));
+      showDialog(
+        context: context, // pastikan ada parameter context
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('Gagal Menggunggah'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // tutup dialog saat tombol ditekan
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
       print('Gagal mengunggah file. Error: $e');
+    } finally {
+      EasyLoading.dismiss();
+      showDialog(
+        context: context, // pastikan ada parameter context
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Behasil'),
+            content: Text('Berhasil Menggunggah'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // tutup dialog saat tombol ditekan
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -1953,7 +2087,6 @@ query MyQuery {
 
   Future<String?> getPresignedUrl(String fileId) async {
     final apiUrl = 'http://45.64.3.54:40380/absendriver-api/v1/storage/files/$fileId/presignedurl';
-
     try {
       final response = await http.get(Uri.parse(apiUrl),
         headers: {'Authorization': 'Bearer ${widget.tokenDriver}'},
@@ -1968,19 +2101,30 @@ query MyQuery {
         return presignedUrl;
       } else {
         print('Failed to get presigned URL. Status code: ${response.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Foto tidak ada'),
-            ));
-        return null;
+        showDialog(
+          context: context, // pastikan ada parameter context
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('Foto tidak ada'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // tutup dialog saat tombol ditekan
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        return 'Foto tidak ada';
       }
     } catch (error) {
       print('Error getting presigned URL: $error');
       return null;
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -2170,9 +2314,8 @@ query MyQuery {
                                       Spacer(),
                                       CustomTextButton(
                                         onPressed: () async {
-                                          // widget.navigateToJanjiTamu(1);
+                                          widget.navigateToJanjiTamu(1);
                                           print(widget.tokenDriver);
-                                          getPresignedUrl('13383067-1f18-4e40-b6b6-ce0fab2cd6a5');
                                         },
                                         text: 'Lihat Semua',
                                       )
