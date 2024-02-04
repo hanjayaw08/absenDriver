@@ -1122,7 +1122,7 @@ class _homeOwnerPageState extends State<homeOwnerPage> {
             where: {
               tanggal: {
                 _lte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
-                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(Duration(days: 7)))}"
+                _gte: "${DateFormat('yyyy-MM-dd').format(DateTime.now())}"
               }
             },
             order_by: {tanggal: desc}
