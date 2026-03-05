@@ -277,7 +277,7 @@ class _profilPageState extends State<profilPage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        primary: Colors.grey[300],
+                        backgroundColor: Colors.grey[300],
                       ),
                       child: Text('Simpan'),
                     ),
